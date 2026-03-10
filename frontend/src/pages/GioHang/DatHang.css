@@ -1,0 +1,278 @@
+/* ===== Checkout Page - Premium Light Theme ===== */
+.dat-hang-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px 20px;
+    min-height: 100vh;
+    background: transparent;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.title {
+    color: #064e3b;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+}
+
+.box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.customer-info p {
+    color: #374151;
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.customer-info strong {
+    color: #064e3b;
+    font-weight: 600;
+}
+
+.right-btn {
+    text-align: right;
+    margin-top: 12px;
+}
+
+.btn-custom {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
+}
+
+.order-box {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.order-left .product-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.order-right {
+    flex: 1;
+}
+
+.order-right p {
+    color: #4b5563;
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.order-right strong {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.payment-label {
+    font-size: 15px;
+    color: #1f2937;
+    margin: 20px 0 10px;
+}
+
+.payment-label strong {
+    color: #064e3b;
+}
+
+.payment-label span {
+    margin-left: 10px;
+    color: #059669;
+    font-weight: 600;
+}
+
+.payment-method-box {
+    margin-bottom: 20px;
+}
+
+.total-box .total-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.total-text {
+    color: #064e3b;
+    font-size: 20px;
+    font-weight: 800;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* POPUP - premium modal */
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.popup-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+    animation: scaleIn 0.3s ease-out;
+}
+
+.popup-box h2 {
+    color: #064e3b;
+    text-align: center;
+    margin-bottom: 24px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+}
+
+.popup-box label {
+    color: #6b7280;
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.popup-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fff;
+    color: #1f2937;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+}
+
+.popup-input:focus {
+    outline: none;
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.popup-btn-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.btn-cancel {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #e5e7eb;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-save:hover {
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+    transform: translateY(-1px);
+}
+
+.payment-option {
+    background: #f8faf9;
+    color: #1f2937;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin: 8px 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    font-weight: 500;
+}
+
+.payment-option:hover {
+    background: #ecfdf5;
+    border-color: #059669;
+    color: #064e3b;
+}
+
+.loading {
+    text-align: center;
+    padding: 60px;
+    color: #9ca3af;
+    font-size: 16px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
