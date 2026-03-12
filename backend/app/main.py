@@ -23,15 +23,25 @@ app = FastAPI(
 )
 
 # CORS - cho phép React frontend gọi API
+origins = [
+    "http://localhost:3000",      # React dev
+    "http://localhost:5173",      # Vite dev
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+
+# Thêm các origin từ biến môi trường (Railway production)
+extra_origins = os.environ.get("CORS_ORIGINS", "")
+if extra_origins:
+    origins.extend([o.strip() for o in extra_origins.split(",") if o.strip()])
+
+# Nếu đang chạy trên Railway, cho phép tất cả origin
+if os.environ.get("RAILWAY_ENVIRONMENT_NAME"):
+    origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",      # React dev
-        "http://localhost:5173",      # Vite dev
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-        # Production: thêm domain thực tế vào đây, ví dụ "https://caycanh.vn"
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
