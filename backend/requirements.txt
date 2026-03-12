@@ -23,5 +23,8 @@ starlette==0.35.1
 aiofiles==23.2.1
 python-magic==0.4.27
 
+# Math/AHP
+numpy==1.26.4
+
 # Utils
 python-dotenv==1.0.0
