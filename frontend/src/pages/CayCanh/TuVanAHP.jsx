@@ -1160,7 +1160,7 @@ const TuVanAHP = () => {
                   {finalResults.map((plant, index) => (
                     <div
                       key={plant.cay_canh_id}
-                      className={`flex items-center gap-5 p-5 rounded-2xl border-2 transition-all duration-300 ${
+                      className={`relative p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 ${
                         index === 0
                           ? 'border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50/60 to-amber-50/30 shadow-lg shadow-amber-100/50 -translate-y-0.5'
                           : index === 1
@@ -1171,61 +1171,66 @@ const TuVanAHP = () => {
                       }`}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      {/* Rank Medal */}
-                      <div className="relative flex-shrink-0">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-heading font-extrabold text-lg ${
-                          index === 0 ? 'bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-200' :
-                          index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-md shadow-slate-200' :
-                          index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-200' :
-                          'bg-gray-100 text-gray-500'
-                        }`}>
-                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                        </div>
-                        {index === 0 && (
-                          <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-md shadow-sm">TOP</span>
-                        )}
-                      </div>
-
-                      {/* Image */}
-                      <img
-                        src={plant.hinh_anh ? `${API_URL}/static/images/${plant.hinh_anh}` : '/placeholder.jpg'}
-                        alt={plant.ten_cay}
-                        className={`w-16 h-16 object-cover rounded-xl flex-shrink-0 ${
-                          index === 0 ? 'shadow-md ring-2 ring-amber-200' : 'shadow-sm'
-                        }`}
-                      />
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className={`font-semibold text-[15px] truncate ${
-                          index === 0 ? 'text-amber-800' : 'text-gray-800'
-                        }`}>{plant.ten_cay}</h4>
-                        <div className="flex items-center gap-3 mt-2">
-                          <div className="flex-1 bg-gray-100 rounded-full h-3 max-w-[220px] overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                                index === 0 ? 'bg-gradient-to-r from-amber-400 to-yellow-400' :
-                                index === 1 ? 'bg-gradient-to-r from-slate-400 to-gray-400' :
-                                'bg-gradient-to-r from-primary-400 to-primary-500'
-                              }`}
-                              style={{ width: `${plant.score}%` }}
-                            />
+                      {/* Top row: rank + image + name */}
+                      <div className="flex items-center gap-3 sm:gap-5">
+                        {/* Rank Medal */}
+                        <div className="relative flex-shrink-0">
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-heading font-extrabold text-base sm:text-lg ${
+                            index === 0 ? 'bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-200' :
+                            index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-md shadow-slate-200' :
+                            index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-200' :
+                            'bg-gray-100 text-gray-500'
+                          }`}>
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                           </div>
-                          <span className={`text-sm font-bold ${
-                            index === 0 ? 'text-amber-600' : 'text-primary-600'
-                          }`}>{plant.score}%</span>
+                          {index === 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-md shadow-sm">TOP</span>
+                          )}
+                        </div>
+
+                        {/* Image */}
+                        <img
+                          src={plant.hinh_anh ? `${API_URL}/static/images/${plant.hinh_anh}` : '/placeholder.jpg'}
+                          alt={plant.ten_cay}
+                          className={`w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-xl flex-shrink-0 ${
+                            index === 0 ? 'shadow-md ring-2 ring-amber-200' : 'shadow-sm'
+                          }`}
+                        />
+
+                        {/* Name + Score */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className={`font-semibold text-sm sm:text-[15px] truncate ${
+                            index === 0 ? 'text-amber-800' : 'text-gray-800'
+                          }`}>{plant.ten_cay}</h4>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <div className="flex-1 bg-gray-100 rounded-full h-2.5 sm:h-3 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-1000 ease-out ${
+                                  index === 0 ? 'bg-gradient-to-r from-amber-400 to-yellow-400' :
+                                  index === 1 ? 'bg-gradient-to-r from-slate-400 to-gray-400' :
+                                  'bg-gradient-to-r from-primary-400 to-primary-500'
+                                }`}
+                                style={{ width: `${plant.score}%` }}
+                              />
+                            </div>
+                            <span className={`text-xs sm:text-sm font-bold flex-shrink-0 ${
+                              index === 0 ? 'text-amber-600' : 'text-primary-600'
+                            }`}>{plant.score}%</span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Action */}
-                      <Link
-                        to={`/cay-canh/${plant.cay_canh_id}`}
-                        className={`btn-premium text-xs py-2.5 px-5 flex-shrink-0 gap-1.5 ${
-                          index === 0 ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-md shadow-amber-200 hover:shadow-lg' : 'btn-primary shadow-md'
-                        }`}
-                      >
-                        <FaShoppingCart className="text-[10px]" /> Xem & Mua
-                      </Link>
+                      {/* Action button - full width on mobile */}
+                      <div className="mt-3 sm:mt-0 sm:absolute sm:right-5 sm:top-1/2 sm:-translate-y-1/2">
+                        <Link
+                          to={`/cay-canh/${plant.cay_canh_id}`}
+                          className={`btn-premium text-xs py-2.5 px-5 gap-1.5 w-full sm:w-auto justify-center ${
+                            index === 0 ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-md shadow-amber-200 hover:shadow-lg' : 'btn-primary shadow-md'
+                          }`}
+                        >
+                          <FaShoppingCart className="text-[10px]" /> Xem & Mua
+                        </Link>
+                      </div>
                     </div>
                   ))}
                 </div>
