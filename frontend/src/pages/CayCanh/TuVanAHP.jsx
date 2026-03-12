@@ -137,23 +137,25 @@ const QUESTIONS = [
 
 // ===== Step Progress =====
 const StepProgress = ({ current, total, labels }) => (
-  <div className="flex items-center justify-center gap-1 mb-8">
-    {Array.from({ length: total }, (_, i) => (
-      <div key={i} className="flex items-center">
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all duration-500 ${
-          i < current ? 'bg-primary-500 text-white shadow-md' :
-          i === current ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg scale-110' :
-          'bg-gray-100 text-gray-400'
-        }`}>
-          {i < current ? <FaCheckCircle className="text-[11px]" /> : i + 1}
+  <div className="overflow-x-auto mb-8 -mx-4 px-4">
+    <div className="flex items-center justify-center gap-0.5 sm:gap-1 min-w-0">
+      {Array.from({ length: total }, (_, i) => (
+        <div key={i} className="flex items-center">
+          <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all duration-500 flex-shrink-0 ${
+            i < current ? 'bg-primary-500 text-white shadow-md' :
+            i === current ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg scale-110' :
+            'bg-gray-100 text-gray-400'
+          }`}>
+            {i < current ? <FaCheckCircle className="text-[10px]" /> : i + 1}
+          </div>
+          {i < total - 1 && (
+            <div className={`h-0.5 w-4 sm:w-8 lg:w-12 mx-0.5 sm:mx-1 rounded transition-all duration-500 ${
+              i < current ? 'bg-primary-400' : 'bg-gray-200'
+            }`} />
+          )}
         </div>
-        {i < total - 1 && (
-          <div className={`h-0.5 w-8 lg:w-12 mx-1 rounded transition-all duration-500 ${
-            i < current ? 'bg-primary-400' : 'bg-gray-200'
-          }`} />
-        )}
-      </div>
-    ))}
+      ))}
+    </div>
   </div>
 )
 

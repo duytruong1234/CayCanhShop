@@ -95,53 +95,59 @@ const GioHang = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {gioHang.chi_tiets.map((item) => (
-                  <div key={item.ghct_id} className="flex items-center gap-4 p-4 bg-gray-50/60 rounded-2xl hover:bg-primary-50/30 transition-all duration-300 border border-transparent hover:border-primary-100/50">
-                    {/* Checkbox */}
-                    <input
-                      type="checkbox"
-                      className="w-[18px] h-[18px] cursor-pointer accent-primary-600 flex-shrink-0 rounded"
-                      checked={selectedItems.includes(item.ghct_id)}
-                      onChange={() => handleCheckItem(item.ghct_id)}
-                    />
+              {gioHang.chi_tiets.map((item) => (
+                  <div key={item.ghct_id} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-gray-50/60 rounded-2xl hover:bg-primary-50/30 transition-all duration-300 border border-transparent hover:border-primary-100/50">
+                    {/* Top row on mobile: checkbox + image + info */}
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                      {/* Checkbox */}
+                      <input
+                        type="checkbox"
+                        className="w-[18px] h-[18px] cursor-pointer accent-primary-600 flex-shrink-0 rounded"
+                        checked={selectedItems.includes(item.ghct_id)}
+                        onChange={() => handleCheckItem(item.ghct_id)}
+                      />
 
-                    {/* Image */}
-                    <img
-                      src={`${API_URL}/static/images/${item.hinh_anh}`}
-                      alt={item.ten_cay}
-                      className="w-20 h-20 object-cover rounded-xl flex-shrink-0 shadow-sm"
-                    />
+                      {/* Image */}
+                      <img
+                        src={`${API_URL}/static/images/${item.hinh_anh}`}
+                        alt={item.ten_cay}
+                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl flex-shrink-0 shadow-sm"
+                      />
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-800 text-[15px] mb-1 truncate">{item.ten_cay}</h4>
-                      <p className="text-primary-600 font-bold text-[15px] font-heading">{formatPrice(item.don_gia)}</p>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-800 text-sm sm:text-[15px] mb-1 truncate">{item.ten_cay}</h4>
+                        <p className="text-primary-600 font-bold text-sm sm:text-[15px] font-heading">{formatPrice(item.don_gia)}</p>
+                      </div>
                     </div>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-1.5">
+                    {/* Bottom row on mobile: quantity + delete */}
+                    <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-3 pl-[30px] sm:pl-0">
+                      {/* Quantity Controls */}
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          className="w-8 h-8 border-2 border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:border-red-400 hover:text-red-500 hover:bg-red-50/50 transition-all duration-200 text-xs"
+                          onClick={() => handleUpdateQty(item.ghct_id, -1)}
+                        >
+                          <FaMinus className="text-[9px]" />
+                        </button>
+                        <span className="w-9 text-center font-semibold text-gray-800 text-sm">{item.so_luong}</span>
+                        <button
+                          className="w-8 h-8 border-2 border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/50 transition-all duration-200 text-xs"
+                          onClick={() => handleUpdateQty(item.ghct_id, 1)}
+                        >
+                          <FaPlus className="text-[9px]" />
+                        </button>
+                      </div>
+
+                      {/* Delete */}
                       <button
-                        className="w-8 h-8 border-2 border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:border-red-400 hover:text-red-500 hover:bg-red-50/50 transition-all duration-200 text-xs"
-                        onClick={() => handleUpdateQty(item.ghct_id, -1)}
+                        className="p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
+                        onClick={() => handleDeleteItem(item.ghct_id)}
                       >
-                        <FaMinus className="text-[9px]" />
-                      </button>
-                      <span className="w-9 text-center font-semibold text-gray-800 text-sm">{item.so_luong}</span>
-                      <button
-                        className="w-8 h-8 border-2 border-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/50 transition-all duration-200 text-xs"
-                        onClick={() => handleUpdateQty(item.ghct_id, 1)}
-                      >
-                        <FaPlus className="text-[9px]" />
+                        <FaTrash className="text-sm" />
                       </button>
                     </div>
-
-                    {/* Delete */}
-                    <button
-                      className="p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
-                      onClick={() => handleDeleteItem(item.ghct_id)}
-                    >
-                      <FaTrash className="text-sm" />
-                    </button>
                   </div>
                 ))}
               </div>
