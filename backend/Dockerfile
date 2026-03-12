@@ -5,7 +5,7 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Cài đặt libpq cho PostgreSQL
-RUN apt-get update && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libpq-dev libmagic1 && rm -rf /var/lib/apt/lists/*
 
 # Copy file requirements
 COPY requirements.txt .
