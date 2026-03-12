@@ -1,0 +1,11 @@
+server {
+    listen ${PORT};
+    server_name _;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+        # Hỗ trợ React Router
+        try_files $uri $uri/ /index.html;
+    }
+}

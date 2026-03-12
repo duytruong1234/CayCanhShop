@@ -24,9 +24,10 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy build từ stage 1 sang thư mục của Nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Ghi đè file cấu hình nginx (xử lý pushstate router của React)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx config template
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
-EXPOSE 80
+# Railway yêu cầu listen trên $PORT
+ENV PORT=80
 
 CMD ["nginx", "-g", "daemon off;"]
