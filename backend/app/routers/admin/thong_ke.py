@@ -45,7 +45,7 @@ async def get_revenue_chart(days: int = 7, db: Session = Depends(get_db)):
     data = {} 
     for i in range(days):
         d = (start_date + timedelta(days=i)).strftime("%d/%m")
-        data[d] = 0
+        data[d] = 0.0
     for o in orders:
         if o.NgayDat:
             d = o.NgayDat.strftime("%d/%m")

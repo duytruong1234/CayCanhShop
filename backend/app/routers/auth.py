@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -13,6 +15,8 @@ from app.utils.auth import (
 )
 from app.config import settings
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -20,7 +24,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
     """Đăng nhập - trả về JWT token"""
     
-    print(f"DEBUG: Login attempt for {request.ten_dang_nhap}")
+    logger.debug(f"Login attempt for {request.ten_dang_nhap}")
     
     # Tìm tài khoản theo tên đăng nhập hoặc email
     user = db.query(TaiKhoan).filter(
@@ -29,24 +33,30 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     ).first()
     
     if not user:
-        print("DEBUG: User not found")
+        logger.debug("User not found")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Sai tài khoản hoặc mật khẩu"
         )
     
-    print(f"DEBUG: User found: {user.TenDangNhap}, ID: {user.TaiKhoanID}")
+    logger.debug(f"User found: {user.TenDangNhap}, ID: {user.TaiKhoanID}")
     
     # Kiểm tra mật khẩu
     is_valid = verify_password(request.mat_khau, user.MatKhau)
-    print(f"DEBUG: Password check result: {is_valid}")
+    logger.debug(f"Password check result: {is_valid}")
     
     if not is_valid:
-        print(f"DEBUG: Password verification failed. Hash in DB: {user.MatKhau[:10]}...")
+        logger.debug("Password verification failed")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Sai tài khoản hoặc mật khẩu"
         )
+    
+    # Auto-rehash: nếu mật khẩu cũ là plain text, tự động chuyển sang bcrypt
+    if not user.MatKhau.startswith("$2"):
+        user.MatKhau = hash_password(request.mat_khau)
+        db.commit()
+        logger.info(f"Auto-rehashed password for user {user.TaiKhoanID}")
     
     # Kiểm tra trạng thái
     if user.TrangThai == "Bị khóa":
@@ -263,12 +273,12 @@ async def forgot_password(
     # TODO: Gửi email thực tế
     # await send_email(email, "Mã xác nhận quên mật khẩu", f"Mã OTP của bạn là: {otp}")
     
-    # Tạm thời trả về OTP để test (trong production phải bỏ)
+    logger.info(f"OTP generated for {email}")
+    
     return {
         "success": True, 
         "email": email,
-        "message": "Mã xác nhận đã được gửi đến email!",
-        "otp_debug": otp  # Chỉ để test, bỏ trong production
+        "message": "Mã xác nhận đã được gửi đến email!"
     }
 
 

@@ -29,7 +29,7 @@
     text-align: center;
     margin: 16px 0 24px;
     font-size: 26px;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 800;
 }
 
@@ -46,7 +46,7 @@
     margin-bottom: 16px;
     padding-bottom: 10px;
     border-bottom: 2px solid #d1fae5;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 16px;
 }
@@ -92,7 +92,7 @@
     border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     border: none;
     transition: all 0.2s;
@@ -154,7 +154,7 @@
     color: #064e3b;
     text-align: center;
     margin-bottom: 24px;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 20px;
 }

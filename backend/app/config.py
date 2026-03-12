@@ -7,17 +7,17 @@ class Settings(BaseSettings):
     DB_SERVER: str = "localhost"
     DB_NAME: str = "HeThongBanCayCanh"
     DB_USER: str = "sa"
-    DB_PASSWORD: str = "your_password"
+    DB_PASSWORD: str = "123"
     DB_DRIVER: str = "ODBC Driver 17 for SQL Server"
     
     # JWT Settings
-    SECRET_KEY: str = "your-super-secret-key-change-in-production"
+    SECRET_KEY: str = "CHANGE-THIS-SECRET-KEY-IN-PRODUCTION"  # Phải đổi trong .env!
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     
     # App Settings
     APP_NAME: str = "CayCanhShop API"
-    DEBUG: bool = True
+    DEBUG: bool = False
     
     # File Upload
     UPLOAD_DIR: str = "static/images"

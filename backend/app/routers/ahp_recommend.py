@@ -20,11 +20,12 @@ router = APIRouter(
 
 class FilterPlantsRequest(BaseModel):
     selected_dac_diem: Optional[List[str]] = None
-
+    excluded_dac_diem: Optional[List[str]] = None
 
 class RecommendRequest(BaseModel):
     selected_criteria: List[str]  # ['C1', 'C3']
     selected_dac_diem: Optional[List[str]] = None  # ['KHONG_DOC', 'DE_CHAM']
+    excluded_dac_diem: Optional[List[str]] = None  # Đặc điểm loại trừ
     custom_weights: Optional[Dict[str, float]] = None  # Trọng số tùy chỉnh từ ma trận người dùng nhập
 
 
@@ -65,6 +66,14 @@ async def get_recommendations(request: RecommendRequest, db: Session = Depends(g
                 CayCanhDacDiem.MaDacDiem == ma_dd
             )
             plants_query = plants_query.filter(CayCanh.CayCanhID.in_(subquery))
+            
+    # Loại trừ theo đặc điểm không mong muốn
+    if request.excluded_dac_diem and len(request.excluded_dac_diem) > 0:
+        for ma_dd in request.excluded_dac_diem:
+            subquery = db.query(CayCanhDacDiem.CayCanhID).filter(
+                CayCanhDacDiem.MaDacDiem == ma_dd
+            )
+            plants_query = plants_query.filter(~CayCanh.CayCanhID.in_(subquery))
     
     plants = plants_query.all()
     
@@ -174,6 +183,13 @@ async def filter_plants(request: FilterPlantsRequest, db: Session = Depends(get_
                 CayCanhDacDiem.MaDacDiem == ma_dd
             )
             plants_query = plants_query.filter(CayCanh.CayCanhID.in_(subquery))
+
+    if request.excluded_dac_diem and len(request.excluded_dac_diem) > 0:
+        for ma_dd in request.excluded_dac_diem:
+            subquery = db.query(CayCanhDacDiem.CayCanhID).filter(
+                CayCanhDacDiem.MaDacDiem == ma_dd
+            )
+            plants_query = plants_query.filter(~CayCanh.CayCanhID.in_(subquery))
 
     plants = plants_query.all()
 

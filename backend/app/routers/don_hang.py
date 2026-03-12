@@ -1,8 +1,11 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from typing import List, Optional
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
 
 from app.database import get_db
 from app.models import (
@@ -144,7 +147,7 @@ async def dat_hang(
             don_gia = ct.DonGia if ct.DonGia is not None else Decimal(0)
             tong_tien += ct.SoLuong * don_gia
     except Exception as e:
-         print(f"DEBUG: Error calculating total: {e}")
+         logger.error(f"Error calculating total: {e}")
          raise HTTPException(status_code=500, detail=f"Lỗi tính tiền: {str(e)}")
 
     try:
@@ -195,9 +198,7 @@ async def dat_hang(
         db.commit()
     except Exception as e:
         db.rollback()
-        print(f"DEBUG: Error saving order: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Error saving order: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Lỗi lưu đơn hàng: {str(e)}")
     
     return DonHangResponse(

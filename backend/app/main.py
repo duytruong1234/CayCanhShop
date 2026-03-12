@@ -30,7 +30,7 @@ app.add_middleware(
         "http://localhost:5173",      # Vite dev
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
-        "*",                          # Production: thay bằng domain/IP EC2 thực tế
+        # Production: thêm domain thực tế vào đây, ví dụ "https://caycanh.vn"
     ],
     allow_credentials=True,
     allow_methods=["*"],

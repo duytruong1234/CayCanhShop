@@ -11,7 +11,7 @@
   text-align: center;
   margin-bottom: 24px;
   font-size: 28px;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 800;
 }
 
@@ -81,7 +81,7 @@
   color: #059669;
   font-weight: 700;
   font-size: 15px;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .cart-qty {
@@ -164,7 +164,7 @@
 .total-left strong {
   color: #059669;
   font-size: 20px;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn-buy {
@@ -174,7 +174,7 @@
   padding: 14px 36px;
   font-size: 15px;
   font-weight: 700;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter', sans-serif;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

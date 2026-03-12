@@ -5,11 +5,17 @@ from decimal import Decimal
 
 from app.database import get_db
 from app.models import TaiKhoan, CayCanh, LoaiCay, TonKho
-# Import CayCanhDacDiem implicitly or explicitly if needed, but usually just for querying
 from app.models.cay_canh_dac_diem import CayCanhDacDiem
 from app.models.tieu_chi import TieuChi
 from app.models.ma_tran_phuong_an import MaTranPhuongAn
 from app.models.trong_so_phuong_an import TrongSoPhuongAn
+from app.models.gio_hang import GioHang, GioHangChiTiet
+from app.models.don_hang import CTDonHang
+from app.models.binh_luan import BinhLuan
+from app.models.thong_tin_khoa_hoc import ThongTinKhoaHoc
+from app.models.mo_ta_chi_tiet import MoTaChiTiet
+from app.models.dac_diem_noi_bat import DacDiemNoiBat
+from app.models.cach_cham_soc import CachChamSoc
 from app.schemas.cay_canh import CayCanhResponse, CayCanhCreate, CayCanhUpdate, LoaiCayResponse
 from app.utils.auth import get_current_admin
 from app.utils.file_handler import save_upload_file, delete_file
@@ -189,18 +195,30 @@ async def delete(
     current_admin: TaiKhoan = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """[Admin] Xóa cây cảnh + dọn dẹp dữ liệu AHP liên quan"""
+    """[Admin] Xóa cây cảnh + dọn dẹp tất cả dữ liệu liên quan"""
     
     cay = db.query(CayCanh).filter(CayCanh.CayCanhID == cay_canh_id).first()
     if not cay:
         raise HTTPException(status_code=404, detail="Không tìm thấy cây cảnh")
     
-    # Xóa dữ liệu AHP liên quan trước (tránh lỗi FK)
+    # 1. Xóa dữ liệu AHP
     db.query(TrongSoPhuongAn).filter(TrongSoPhuongAn.CayCanhID == cay_canh_id).delete()
     db.query(MaTranPhuongAn).filter(
         (MaTranPhuongAn.CayDongID == cay_canh_id) | (MaTranPhuongAn.CayCotID == cay_canh_id)
     ).delete(synchronize_session='fetch')
+    
+    # 2. Xóa dữ liệu Bài viết
+    db.query(ThongTinKhoaHoc).filter(ThongTinKhoaHoc.CayCanhID == cay_canh_id).delete()
+    db.query(MoTaChiTiet).filter(MoTaChiTiet.CayCanhID == cay_canh_id).delete()
+    db.query(DacDiemNoiBat).filter(DacDiemNoiBat.CayCanhID == cay_canh_id).delete()
+    db.query(CachChamSoc).filter(CachChamSoc.CayCanhID == cay_canh_id).delete()
+    
+    # 3. Xóa dữ liệu Tham chiếu
     db.query(CayCanhDacDiem).filter(CayCanhDacDiem.CayCanhID == cay_canh_id).delete()
+    db.query(TonKho).filter(TonKho.CayCanhID == cay_canh_id).delete()
+    db.query(GioHangChiTiet).filter(GioHangChiTiet.CayCanhID == cay_canh_id).delete()
+    db.query(CTDonHang).filter(CTDonHang.CayCanhID == cay_canh_id).delete()
+    db.query(BinhLuan).filter(BinhLuan.CayCanhID == cay_canh_id).delete()
     
     # Xóa hình ảnh
     if cay.HinhAnh:

@@ -1,77 +1,38 @@
 import { useState, useEffect } from 'react'
+import { FaPlus, FaTrash, FaSearch, FaUsers } from 'react-icons/fa'
 import api from '../../../services/api'
-import './AdminKhachHang.css'
 
 const AdminKhachHang = () => {
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(true)
-    const [showModal, setShowModal] = useState(false)
-    const [selectedUser, setSelectedUser] = useState(null)
-    const [search, setSearch] = useState('')
-
-    // Form (Thêm/Sửa) có thể ở đây nhưng hiện tại chỉ liệt kê và xóa như triển khai điển hình
-    // Thực tế C# có "ThemTaiKhoan", "CapNhatTaiKhoan". Tôi nên triển khai Thêm.
     const [showAddModal, setShowAddModal] = useState(false)
+    const [search, setSearch] = useState('')
     const [formData, setFormData] = useState({
-        ten_dang_nhap: '',
-        mat_khau: '',
-        ho_ten: '',
-        email: '',
-        dien_thoai: '',
-        gioi_tinh: 'Nam',
-        dia_chi: '',
-        vai_tro_id: 2
+        ten_dang_nhap: '', mat_khau: '', ho_ten: '', email: '', dien_thoai: '', gioi_tinh: 'Nam', dia_chi: '', vai_tro_id: 2
     })
 
-    useEffect(() => {
-        fetchUsers()
-    }, [])
+    useEffect(() => { fetchUsers() }, [])
 
     const fetchUsers = async () => {
-        try {
-            const res = await api.get('/admin/khach-hang/')
-            setUsers(res.data)
-            setLoading(false)
-        } catch (error) {
-            console.error(error)
-            setLoading(false)
-        }
+        try { const res = await api.get('/admin/khach-hang/'); setUsers(res.data) }
+        catch (error) { console.error(error) }
+        finally { setLoading(false) }
     }
 
     const handleDelete = async (id) => {
         if (!window.confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) return
-        try {
-            await api.delete(`/admin/khach-hang/${id}`)
-            alert('Xóa thành công!')
-            fetchUsers()
-        } catch (error) {
-            alert(error.response?.data?.detail || 'Không thể xóa')
-        }
+        try { await api.delete(`/admin/khach-hang/${id}`); alert('Xóa thành công!'); fetchUsers() }
+        catch (error) { alert(error.response?.data?.detail || 'Không thể xóa') }
     }
 
     const handleCreate = async () => {
         try {
-            if (!formData.ten_dang_nhap || !formData.mat_khau) {
-                alert('Vui lòng nhập đầy đủ thông tin')
-                return
-            }
+            if (!formData.ten_dang_nhap || !formData.mat_khau) { alert('Vui lòng nhập đầy đủ thông tin'); return }
             await api.post('/admin/khach-hang/', formData)
             alert('Thêm tài khoản thành công!')
-            setShowAddModal(false)
-            fetchUsers()
-            setFormData({
-                ten_dang_nhap: '',
-                mat_khau: '',
-                ho_ten: '',
-                email: '',
-                dien_thoai: '',
-                gioi_tinh: 'Nam',
-                dia_chi: '',
-                vai_tro_id: 2
-            })
-        } catch (error) {
-            alert(error.response?.data?.detail || 'Lỗi khi thêm')
-        }
+            setShowAddModal(false); fetchUsers()
+            setFormData({ ten_dang_nhap: '', mat_khau: '', ho_ten: '', email: '', dien_thoai: '', gioi_tinh: 'Nam', dia_chi: '', vai_tro_id: 2 })
+        } catch (error) { alert(error.response?.data?.detail || 'Lỗi khi thêm') }
     }
 
     const filteredUsers = users.filter(u =>
@@ -81,23 +42,30 @@ const AdminKhachHang = () => {
     )
 
     return (
-        <div className="admin-khachhang">
-            <div className="header-row">
-                <h3>Quản lý Khách hàng / Tài khoản</h3>
-                <button className="btn-add" onClick={() => setShowAddModal(true)}>+ Thêm tài khoản</button>
+        <div className="admin-page animate-fade-in">
+            <div className="admin-page-header">
+                <h1><FaUsers className="inline text-purple-500 mr-2 text-lg" />Quản lý khách hàng</h1>
+                <button className="admin-btn admin-btn-primary" onClick={() => setShowAddModal(true)}>
+                    <FaPlus size={12} /> Thêm tài khoản
+                </button>
             </div>
 
-            <div className="search-box">
-                <input
-                    type="text"
-                    placeholder="Tìm kiếm theo tên, email..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="search-input"
-                />
+            {/* Search */}
+            <div className="mb-5">
+                <div className="relative max-w-sm">
+                    <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm theo tên, email..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="admin-search pl-10 w-full"
+                    />
+                </div>
             </div>
 
-            <div className="table-responsive">
+            {/* Table */}
+            <div className="admin-table-wrap">
                 <table className="admin-table">
                     <thead>
                         <tr>
@@ -111,21 +79,21 @@ const AdminKhachHang = () => {
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr><td colSpan="6" className="text-center">Đang tải...</td></tr>
+                            <tr><td colSpan="6" className="text-center py-8 text-gray-400">Đang tải...</td></tr>
                         ) : filteredUsers.map(u => (
                             <tr key={u.user_id}>
-                                <td>{u.user_id}</td>
-                                <td>{u.ten_dang_nhap}</td>
+                                <td className="text-gray-400 text-sm">{u.user_id}</td>
+                                <td className="font-semibold">{u.ten_dang_nhap}</td>
                                 <td>{u.ho_ten}</td>
-                                <td>{u.email}</td>
+                                <td className="text-sm text-gray-500">{u.email}</td>
                                 <td>
-                                    <span className={`role-badge ${u.vai_tro_id === 1 ? 'admin' : 'user'}`}>
+                                    <span className={`admin-badge ${u.vai_tro_id === 1 ? 'admin-badge-purple' : 'admin-badge-blue'}`}>
                                         {u.ten_vai_tro}
                                     </span>
                                 </td>
                                 <td>
-                                    <button className="btn-sm btn-delete" onClick={() => handleDelete(u.user_id)}>
-                                        Xóa
+                                    <button className="admin-btn admin-btn-sm admin-btn-delete" onClick={() => handleDelete(u.user_id)}>
+                                        <FaTrash size={11} /> Xóa
                                     </button>
                                 </td>
                             </tr>
@@ -134,45 +102,46 @@ const AdminKhachHang = () => {
                 </table>
             </div>
 
+            {/* Modal */}
             {showAddModal && (
-                <div className="modal-overlay">
-                    <div className="modal-box">
-                        <div className="modal-header">
-                            <h4>Thêm tài khoản mới</h4>
-                            <button className="close-btn" onClick={() => setShowAddModal(false)}>✕</button>
+                <div className="admin-modal-overlay" onClick={() => setShowAddModal(false)}>
+                    <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                        <div className="admin-modal-header">
+                            <h3>Thêm tài khoản mới</h3>
+                            <button className="admin-modal-close" onClick={() => setShowAddModal(false)}>✕</button>
                         </div>
-
-                        <div className="form-grid">
-                            <div>
-                                <label>Tên đăng nhập</label>
-                                <input className="input-field" value={formData.ten_dang_nhap} onChange={e => setFormData({ ...formData, ten_dang_nhap: e.target.value })} />
-                            </div>
-                            <div>
-                                <label>Mật khẩu</label>
-                                <input className="input-field" type="password" value={formData.mat_khau} onChange={e => setFormData({ ...formData, mat_khau: e.target.value })} />
-                            </div>
-                            <div>
-                                <label>Họ tên</label>
-                                <input className="input-field" value={formData.ho_ten} onChange={e => setFormData({ ...formData, ho_ten: e.target.value })} />
-                            </div>
-                            <div>
-                                <label>Email</label>
-                                <input className="input-field" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                            </div>
-                            <div>
-                                <label>Điện thoại</label>
-                                <input className="input-field" value={formData.dien_thoai} onChange={e => setFormData({ ...formData, dien_thoai: e.target.value })} />
-                            </div>
-                            <div>
-                                <label>Vai trò</label>
-                                <select className="input-field" value={formData.vai_tro_id} onChange={e => setFormData({ ...formData, vai_tro_id: parseInt(e.target.value) })}>
-                                    <option value={2}>Khách hàng</option>
-                                    <option value={1}>Admin</option>
-                                </select>
+                        <div className="admin-modal-body">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                                {[
+                                    { label: 'Tên đăng nhập', key: 'ten_dang_nhap' },
+                                    { label: 'Mật khẩu', key: 'mat_khau', type: 'password' },
+                                    { label: 'Họ tên', key: 'ho_ten' },
+                                    { label: 'Email', key: 'email' },
+                                    { label: 'Điện thoại', key: 'dien_thoai' },
+                                ].map(f => (
+                                    <div key={f.key} className="admin-form-group">
+                                        <label className="admin-form-label">{f.label}</label>
+                                        <input
+                                            className="admin-form-input"
+                                            type={f.type || 'text'}
+                                            value={formData[f.key]}
+                                            onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                                        />
+                                    </div>
+                                ))}
+                                <div className="admin-form-group">
+                                    <label className="admin-form-label">Vai trò</label>
+                                    <select className="admin-form-input" value={formData.vai_tro_id} onChange={e => setFormData({ ...formData, vai_tro_id: parseInt(e.target.value) })}>
+                                        <option value={2}>Khách hàng</option>
+                                        <option value={1}>Admin</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-
-                        <button className="modal-btn btn-success" onClick={handleCreate}>Thêm mới</button>
+                        <div className="admin-modal-footer">
+                            <button className="admin-btn admin-btn-ghost" onClick={() => setShowAddModal(false)}>Hủy</button>
+                            <button className="admin-btn admin-btn-primary" onClick={handleCreate}>Thêm mới</button>
+                        </div>
                     </div>
                 </div>
             )}

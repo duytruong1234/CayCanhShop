@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+import logging
+from datetime import datetime, timedelta, timezone
 from typing import Optional
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -10,25 +11,33 @@ from app.config import settings
 from app.database import get_db
 from app.models import TaiKhoan, KhachHang
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+logger = logging.getLogger(__name__)
 
 # JWT Bearer
 security = HTTPBearer()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Xác thực mật khẩu - tương thích với BCrypt.Net của C#"""
+    """Xác thực mật khẩu - hỗ trợ migration từ plain text sang bcrypt"""
     try:
-        return pwd_context.verify(plain_password, hashed_password)
+        plain_bytes = plain_password.encode("utf-8")
+        hashed_bytes = hashed_password.encode("utf-8")
+        return bcrypt.checkpw(plain_bytes, hashed_bytes)
     except Exception:
-        # Nếu không phải hash, so sánh plain text (cho dữ liệu cũ)
-        return plain_password == hashed_password
+        # Fallback: mật khẩu cũ lưu plain text (legacy từ C#)
+        # Nếu khớp, sẽ được auto-rehash trong login handler
+        if plain_password == hashed_password:
+            logger.warning("Plain text password matched - needs rehash migration")
+            return True
+        return False
 
 
 def hash_password(password: str) -> str:
     """Hash mật khẩu"""
-    return pwd_context.hash(password)
+    password_bytes = password.encode("utf-8")
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode("utf-8")
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -36,9 +45,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode = data.copy()
     
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -52,7 +61,7 @@ def decode_token(token: str) -> dict:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
     except JWTError as e:
-        print(f"DEBUG: JWT Decode Error: {str(e)}")
+        logger.debug(f"JWT Decode Error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token không hợp lệ hoặc đã hết hạn",
@@ -69,14 +78,14 @@ async def get_current_user(
     try:
         payload = decode_token(token)
     except Exception as e:
-        print(f"DEBUG: Token decode failed: {e}")
+        logger.debug(f"Token decode failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token không hợp lệ"
         )
     
     raw_id = payload.get("sub")
-    print(f"DEBUG: get_current_user raw sub: {raw_id} (type: {type(raw_id)})")
+    logger.debug(f"get_current_user raw sub: {raw_id}")
     
     if raw_id is None:
         raise HTTPException(
@@ -87,7 +96,7 @@ async def get_current_user(
     try:
         tai_khoan_id = int(raw_id)
     except ValueError:
-        print(f"DEBUG: sub is not an integer")
+        logger.debug("sub is not an integer")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token không hợp lệ (sub not int)"
@@ -96,7 +105,7 @@ async def get_current_user(
     
     user = db.query(TaiKhoan).filter(TaiKhoan.TaiKhoanID == tai_khoan_id).first()
     if user is None:
-        print(f"DEBUG: User ID {tai_khoan_id} not found in DB")
+        logger.debug(f"User ID {tai_khoan_id} not found in DB")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Không tìm thấy người dùng"
@@ -138,7 +147,7 @@ async def get_optional_user(
         
         if tai_khoan_id:
             return db.query(TaiKhoan).filter(TaiKhoan.TaiKhoanID == tai_khoan_id).first()
-    except:
-        pass
+    except Exception as e:
+        logger.debug(f"Optional auth failed: {e}")
     
     return None

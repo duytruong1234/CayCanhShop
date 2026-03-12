@@ -18,9 +18,10 @@ export const ahpService = {
   },
 
   // Lọc cây theo đặc điểm (cho wizard tư vấn)
-  filterPlants: async (selectedDacDiem) => {
+  filterPlants: async (selectedDacDiem, excludedDacDiem = []) => {
     const response = await api.post('/ahp-recommend/loc-cay', {
-      selected_dac_diem: selectedDacDiem
+      selected_dac_diem: selectedDacDiem,
+      excluded_dac_diem: excludedDacDiem
     })
     return response.data
   },
