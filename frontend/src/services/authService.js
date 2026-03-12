@@ -12,16 +12,7 @@ export const authService = {
 
   // Đăng ký
   register: async (data) => {
-    const response = await api.post('/auth/register', {
-      ho_ten: data.hoTen,
-      gioi_tinh: data.gioiTinh,
-      ngay_sinh: data.ngaySinh,
-      dia_chi: data.diaChi,
-      email: data.email,
-      dien_thoai: data.dienThoai,
-      ten_dang_nhap: data.tenDangNhap,
-      mat_khau: data.matKhau
-    })
+    const response = await api.post('/auth/register', data)
     return response.data
   },
 
