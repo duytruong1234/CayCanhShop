@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { FaHome, FaLeaf, FaShoppingBag, FaUsers, FaBoxes, FaSignOutAlt, FaTags } from 'react-icons/fa'
+import { FaHome, FaLeaf, FaShoppingBag, FaUsers, FaBoxes, FaSignOutAlt, FaTags, FaBars, FaTimes } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
@@ -7,6 +8,7 @@ const AdminLayout = () => {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const menuItems = [
     { path: '/admin', icon: FaHome, label: 'Dashboard', exact: true },
@@ -27,12 +29,29 @@ const AdminLayout = () => {
     navigate('/dang-nhap')
   }
 
+  const handleNavClick = () => {
+    setSidebarOpen(false)
+  }
+
   return (
     <div className="min-h-screen flex bg-gray-50">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col fixed h-full">
+      <aside className={`
+        w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col fixed h-full z-50
+        transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0
+      `}>
         {/* Brand */}
-        <div className="p-5 border-b border-white/10">
+        <div className="p-5 border-b border-white/10 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-glow-green transition-all duration-300">
               <FaLeaf className="text-white text-sm" />
@@ -42,6 +61,13 @@ const AdminLayout = () => {
               <span className="block text-[10px] text-primary-400 font-medium tracking-wider uppercase">Admin Panel</span>
             </div>
           </Link>
+          {/* Close button on mobile */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+          >
+            <FaTimes />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -52,6 +78,7 @@ const AdminLayout = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={handleNavClick}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative ${active
                     ? 'bg-primary-600/20 text-primary-400'
                     : 'text-gray-400 hover:bg-white/5 hover:text-white'
@@ -89,14 +116,21 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 ml-64 overflow-auto">
-        <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-8 py-5 sticky top-0 z-40">
-          <h1 className="text-lg font-heading font-bold text-gray-800">
+      <div className="flex-1 lg:ml-64 overflow-auto min-h-screen">
+        <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 sm:px-6 lg:px-8 py-4 lg:py-5 sticky top-0 z-30 flex items-center gap-3">
+          {/* Hamburger button on mobile */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
+          >
+            <FaBars className="text-lg" />
+          </button>
+          <h1 className="text-base lg:text-lg font-heading font-bold text-gray-800">
             {menuItems.find(item => isActive(item.path, item.exact))?.label || 'Admin'}
           </h1>
         </header>
 
-        <main className="p-8">
+        <main className="p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
