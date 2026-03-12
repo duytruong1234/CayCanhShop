@@ -2,35 +2,23 @@ version: '3.8'
 
 services:
   db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: postgres:15-alpine
     container_name: caycanh_db
     environment:
-      ACCEPT_EULA: Y
-      MSSQL_SA_PASSWORD: "YourStr0ng!Pass"
-      MSSQL_PID: "Developer"
+      POSTGRES_DB: HeThongBanCayCanh
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "YourStr0ng!Pass"
     ports:
-      - "1433:1433"
+      - "5432:5432"
     volumes:
-      - sql_data:/var/opt/mssql
-      - ./database/init.sql:/scripts/init.sql
+      - pg_data:/var/lib/postgresql/data
+      - ./database/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: [ "CMD", "/opt/mssql-tools/bin/sqlcmd", "-u", "-S", "localhost", "-U", "sa", "-P", "YourStr0ng!Pass", "-Q", "SELECT 1" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 3s
       retries: 10
       start_period: 10s
-
-  # Service tự động chạy init.sql sau khi DB sẵn sàng
-  db-init:
-    image: mcr.microsoft.com/mssql-tools
-    container_name: caycanh_db_init
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - ./database:/scripts
-    command: /opt/mssql-tools/bin/sqlcmd -S db -U sa -P "YourStr0ng!Pass" -i /scripts/init.sql
-    restart: "no"
 
   backend:
     build:
@@ -40,10 +28,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DB_SERVER=db
-      - DB_NAME=HeThongBanCayCanh
-      - DB_USER=sa
-      - DB_PASSWORD=YourStr0ng!Pass
+      - DATABASE_URL=postgresql://postgres:YourStr0ng!Pass@db:5432/HeThongBanCayCanh
     depends_on:
       db:
         condition: service_healthy
@@ -63,5 +48,5 @@ services:
       - backend
 
 volumes:
-  sql_data:
+  pg_data:
   backend_static:
