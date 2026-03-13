@@ -1202,7 +1202,7 @@ const TuVanAHP = () => {
                         />
 
                         {/* Name + Score */}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 sm:pr-36">
                           <h4 className={`font-semibold text-sm sm:text-[15px] truncate ${
                             index === 0 ? 'text-amber-800' : 'text-gray-800'
                           }`}>{plant.ten_cay}</h4>
