@@ -1160,7 +1160,7 @@ const TuVanAHP = () => {
                   {finalResults.map((plant, index) => (
                     <div
                       key={plant.cay_canh_id}
-                      className={`relative p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 ${
+                      className={`relative p-4 sm:p-5 pr-24 sm:pr-40 rounded-2xl border-2 transition-all duration-300 ${
                         index === 0
                           ? 'border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50/60 to-amber-50/30 shadow-lg shadow-amber-100/50 -translate-y-0.5'
                           : index === 1
@@ -1202,7 +1202,7 @@ const TuVanAHP = () => {
                         />
 
                         {/* Name + Score */}
-                        <div className="flex-1 min-w-0 sm:pr-36">
+                        <div className="flex-1 min-w-0">
                           <h4 className={`font-semibold text-sm sm:text-[15px] truncate ${
                             index === 0 ? 'text-amber-800' : 'text-gray-800'
                           }`}>{plant.ten_cay}</h4>
