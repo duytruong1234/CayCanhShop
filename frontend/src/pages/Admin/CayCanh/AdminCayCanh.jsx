@@ -64,7 +64,7 @@ const AdminCayCanh = () => {
         if (formData.hinh_anh) data.append('hinh_anh', formData.hinh_anh)
         if (formData.dac_diems?.length > 0) formData.dac_diems.forEach(ma => data.append('dac_diems', ma))
         try {
-            await api.post('/admin/cay-canh/', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+            await api.post('/admin/cay-canh/', data)
             alert('Thêm cây thành công!')
             setShowAddModal(false)
             fetchData()
@@ -85,7 +85,7 @@ const AdminCayCanh = () => {
         if (formData.hinh_anh) data.append('hinh_anh', formData.hinh_anh)
         if (formData.dac_diems) formData.dac_diems.forEach(ma => data.append('dac_diems', ma))
         try {
-            await api.put(`/admin/cay-canh/${selectedCay.cay_canh_id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
+            await api.put(`/admin/cay-canh/${selectedCay.cay_canh_id}`, data)
             alert('Cập nhật thành công!')
             setShowEditModal(false)
             fetchData()

@@ -85,7 +85,7 @@ const DonHangChiTiet = () => {
     formData.append('noi_dung', danhGiaData.noiDung)
     if (danhGiaData.hinhAnh) formData.append('hinh_anh', danhGiaData.hinhAnh)
     try {
-      await api.post('/binh-luan/', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await api.post('/binh-luan/', formData)
       alert('Đánh giá thành công!')
       setShowDanhGiaModal(false)
       fetchDonHang()
