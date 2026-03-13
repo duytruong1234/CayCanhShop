@@ -112,6 +112,10 @@ const GioHang = () => {
                         src={`${API_URL}/static/images/${item.hinh_anh}`}
                         alt={item.ten_cay}
                         className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl flex-shrink-0 shadow-sm"
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f0fdf4' width='400' height='400'/%3E%3Ctext x='200' y='180' text-anchor='middle' font-size='60' fill='%2322c55e'%3E🌿%3C/text%3E%3Ctext x='200' y='230' text-anchor='middle' font-size='16' fill='%2386efac'%3EKhông có hình ảnh%3C/text%3E%3C/svg%3E"
+                        }}
                       />
 
                       {/* Info */}

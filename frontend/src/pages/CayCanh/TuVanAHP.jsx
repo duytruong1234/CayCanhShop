@@ -1190,11 +1190,15 @@ const TuVanAHP = () => {
 
                         {/* Image */}
                         <img
-                          src={plant.hinh_anh ? `${API_URL}/static/images/${plant.hinh_anh}` : '/placeholder.jpg'}
+                          src={plant.hinh_anh ? `${API_URL}/static/images/${plant.hinh_anh}` : ''}
                           alt={plant.ten_cay}
                           className={`w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-xl flex-shrink-0 ${
                             index === 0 ? 'shadow-md ring-2 ring-amber-200' : 'shadow-sm'
                           }`}
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f0fdf4' width='400' height='400'/%3E%3Ctext x='200' y='180' text-anchor='middle' font-size='60' fill='%2322c55e'%3E🌿%3C/text%3E%3Ctext x='200' y='230' text-anchor='middle' font-size='16' fill='%2386efac'%3EKhông có hình ảnh%3C/text%3E%3C/svg%3E"
+                          }}
                         />
 
                         {/* Name + Score */}

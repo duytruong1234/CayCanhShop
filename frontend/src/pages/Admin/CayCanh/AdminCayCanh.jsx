@@ -48,6 +48,14 @@ const AdminCayCanh = () => {
         })
     }
 
+    const getErrorMessage = (error) => {
+        const detail = error.response?.data?.detail
+        if (!detail) return 'Có lỗi xảy ra'
+        if (typeof detail === 'string') return detail
+        if (Array.isArray(detail)) return detail.map(d => d.msg || JSON.stringify(d)).join(', ')
+        return JSON.stringify(detail)
+    }
+
     const handleAddSubmit = async () => {
         const data = new FormData()
         data.append('ten_cay', formData.ten_cay)
@@ -60,7 +68,7 @@ const AdminCayCanh = () => {
             alert('Thêm cây thành công!')
             setShowAddModal(false)
             fetchData()
-        } catch (error) { alert(error.response?.data?.detail || 'Lỗi khi thêm cây') }
+        } catch (error) { alert(getErrorMessage(error)) }
     }
 
     const openEditModal = (cay) => {
@@ -81,7 +89,7 @@ const AdminCayCanh = () => {
             alert('Cập nhật thành công!')
             setShowEditModal(false)
             fetchData()
-        } catch (error) { alert(error.response?.data?.detail || 'Lỗi khi cập nhật') }
+        } catch (error) { alert(getErrorMessage(error)) }
     }
 
     const openDeleteModal = (cay) => { setSelectedCay(cay); setShowDeleteModal(true) }
@@ -92,7 +100,7 @@ const AdminCayCanh = () => {
             alert('Xóa thành công!')
             setShowDeleteModal(false)
             fetchData()
-        } catch (error) { alert(error.response?.data?.detail || 'Lỗi khi xóa') }
+        } catch (error) { alert(getErrorMessage(error)) }
     }
 
     if (loading) return (

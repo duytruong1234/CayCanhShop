@@ -146,7 +146,12 @@ const DonHangChiTiet = () => {
             <div className="space-y-3">
               {donHang.chi_tiets?.map((ct) => (
                 <div key={ct.ct_don_hang_id} className="flex items-center gap-4 p-3 bg-gray-50/60 rounded-xl hover:bg-primary-50/20 transition-all">
-                  <img src={`${API_URL}/static/images/${ct.hinh_anh}`} alt={ct.ten_cay} className="w-16 h-16 object-cover rounded-xl flex-shrink-0 shadow-sm" />
+                  <img src={`${API_URL}/static/images/${ct.hinh_anh}`} alt={ct.ten_cay} className="w-16 h-16 object-cover rounded-xl flex-shrink-0 shadow-sm"
+                    onError={(e) => {
+                      e.target.onerror = null
+                      e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f0fdf4' width='400' height='400'/%3E%3Ctext x='200' y='180' text-anchor='middle' font-size='60' fill='%2322c55e'%3E🌿%3C/text%3E%3Ctext x='200' y='230' text-anchor='middle' font-size='16' fill='%2386efac'%3EKhông có hình ảnh%3C/text%3E%3C/svg%3E"
+                    }}
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-800 text-sm truncate">{ct.ten_cay}</p>
                     <p className="text-gray-400 text-xs mt-0.5">SL: {ct.so_luong} × {formatPrice(ct.don_gia)}</p>

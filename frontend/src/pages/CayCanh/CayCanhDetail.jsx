@@ -72,9 +72,13 @@ const CayCanhDetail = () => {
           <div>
             <div className="aspect-square rounded-3xl overflow-hidden bg-gray-50 shadow-[var(--shadow-md)] group border border-gray-100/60">
               <img
-                src={cay.hinh_anh ? `${API_URL}/static/images/${cay.hinh_anh}` : '/placeholder.jpg'}
+                src={cay.hinh_anh ? `${API_URL}/static/images/${cay.hinh_anh}` : ''}
                 alt={cay.ten_cay}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                onError={(e) => {
+                  e.target.onerror = null
+                  e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f0fdf4' width='400' height='400'/%3E%3Ctext x='200' y='180' text-anchor='middle' font-size='60' fill='%2322c55e'%3E🌿%3C/text%3E%3Ctext x='200' y='230' text-anchor='middle' font-size='16' fill='%2386efac'%3EKhông có hình ảnh%3C/text%3E%3C/svg%3E"
+                }}
               />
             </div>
           </div>
