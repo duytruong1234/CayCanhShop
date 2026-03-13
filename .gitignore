@@ -26,6 +26,6 @@ Thumbs.db
 # Docker volumes
 sql_data/
 
-# Static uploads (generated at runtime)
-backend/static/images/*
-!backend/static/images/.gitkeep
+# Static uploads - track product images
+# Only ignore comment images (user-generated at runtime)
+backend/static/images/binhluan/
