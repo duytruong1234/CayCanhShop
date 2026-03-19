@@ -14,14 +14,11 @@ RUN npm run build
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
 
-# Xóa toàn bộ config mặc định và html mặc định
-RUN rm -rf /usr/share/nginx/html/* && rm -f /etc/nginx/conf.d/default.conf
-
+RUN rm -rf /usr/share/nginx/html/*
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf.template /tmp/nginx.conf.template
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Railway gán PORT động qua biến môi trường
-ENV PORT=80
+EXPOSE 80
 
-# Thay thế $PORT trong template rồi chạy nginx  
-CMD sh -c "envsubst '\$PORT' < /tmp/nginx.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+CMD ["nginx", "-g", "daemon off;"]
+
