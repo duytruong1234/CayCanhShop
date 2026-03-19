@@ -175,7 +175,11 @@ async def get_criteria_and_features(db: Session = Depends(get_db)):
 @router.post("/loc-cay")
 async def filter_plants(request: FilterPlantsRequest, db: Session = Depends(get_db)):
     """Lọc cây theo đặc điểm, trả về danh sách cây cơ bản cho wizard tư vấn"""
-    plants_query = db.query(CayCanh)
+    from sqlalchemy.orm import joinedload
+    plants_query = db.query(CayCanh).options(
+        joinedload(CayCanh.loai_cay),
+        joinedload(CayCanh.dac_diems)
+    )
 
     if request.selected_dac_diem and len(request.selected_dac_diem) > 0:
         for ma_dd in request.selected_dac_diem:
@@ -193,11 +197,23 @@ async def filter_plants(request: FilterPlantsRequest, db: Session = Depends(get_
 
     plants = plants_query.all()
 
-    return [
-        {
+    result = []
+    for p in plants:
+        # Lấy tên đặc điểm
+        dac_diem_names = []
+        for dd_link in p.dac_diems:
+            dd = db.query(DacDiem).filter(DacDiem.MaDacDiem == dd_link.MaDacDiem).first()
+            if dd:
+                dac_diem_names.append(dd.TenDacDiem)
+
+        result.append({
             "cay_canh_id": p.CayCanhID,
             "ten_cay": p.TenCay,
-            "hinh_anh": p.HinhAnh
-        }
-        for p in plants
-    ]
+            "hinh_anh": p.HinhAnh,
+            "gia": float(p.Gia) if p.Gia else 0,
+            "mo_ta": p.MoTa or "",
+            "loai_cay": p.loai_cay.TenLoai if p.loai_cay else None,
+            "dac_diems": dac_diem_names
+        })
+
+    return result

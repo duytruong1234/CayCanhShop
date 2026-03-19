@@ -25,6 +25,8 @@ app = FastAPI(
 # CORS - cho phép React frontend gọi API
 origins = [
     "http://localhost:3000",      # React dev
+    "http://localhost:3001",      # Vite dev (port thay thế)
+    "http://localhost:3002",      # Vite dev (port thay thế)
     "http://localhost:5173",      # Vite dev
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ahpService } from '../../services/ahpService'
+import { cayCanhService } from '../../services/cayCanhService'
 import { FaLeaf, FaArrowRight, FaArrowLeft, FaChevronRight, FaCheckCircle, FaExclamationTriangle, FaRedo, FaShoppingCart, FaInfoCircle, FaChevronDown, FaChevronUp, FaSeedling, FaSearch } from 'react-icons/fa'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -367,6 +368,8 @@ const TuVanAHP = () => {
   const [altWeights, setAltWeights] = useState({})
   const [altCRs, setAltCRs] = useState({})
   const [finalResults, setFinalResults] = useState([])
+  const [allPlants, setAllPlants] = useState([])
+  const [loadingAllPlants, setLoadingAllPlants] = useState(false)
 
   const { data: options } = useQuery({
     queryKey: ['ahp-options'],
@@ -385,6 +388,19 @@ const TuVanAHP = () => {
   }, [])
 
   useEffect(() => { if (options) setDacDiems(options.dac_diems || []) }, [options])
+
+  // Fetch tất cả cây cảnh cho phần giới thiệu
+  useEffect(() => {
+    const fetchAllPlants = async () => {
+      setLoadingAllPlants(true)
+      try {
+        const data = await cayCanhService.getAll({ limit: 100 })
+        setAllPlants(data)
+      } catch (err) { console.error('Lỗi tải danh sách cây:', err) }
+      finally { setLoadingAllPlants(false) }
+    }
+    fetchAllPlants()
+  }, [])
 
   useEffect(() => {
     const keys = tieuChis.map(tc => tc.ma_tieu_chi)
@@ -484,8 +500,8 @@ const TuVanAHP = () => {
     setFinalResults(results)
   }
 
-  const STEP_GUIDE = 0, STEP_CRITERIA = 1, STEP_QUESTIONS = 2, STEP_ALT_START = 3
-  const STEP_RESULTS = 3 + tieuChis.length
+  const STEP_PLANTS = 0, STEP_GUIDE = 1, STEP_CRITERIA = 2, STEP_QUESTIONS = 3, STEP_ALT_START = 4
+  const STEP_RESULTS = 4 + tieuChis.length
   const totalWizardSteps = STEP_RESULTS + 1
 
   const handleBack = () => { setWizardStep(prev => Math.max(0, prev - 1)); window.scrollTo(0, 0) }
@@ -741,6 +757,7 @@ const TuVanAHP = () => {
               </div>
             </div>
 
+
             {/* CTA Button with glow */}
             <div className="text-center mt-14">
               <button
@@ -776,6 +793,7 @@ const TuVanAHP = () => {
             <FaLeaf className="text-xs" /> <span>Tư vấn chọn cây</span>
             <FaChevronRight className="text-[8px] text-primary-400/40" />
             <span className="text-primary-200">
+              {wizardStep === STEP_PLANTS && 'Giới thiệu cây'}
               {wizardStep === STEP_GUIDE && 'Hướng dẫn'}
               {wizardStep === STEP_CRITERIA && 'Tiêu chí'}
               {wizardStep === STEP_QUESTIONS && 'Lọc cây'}
@@ -784,6 +802,7 @@ const TuVanAHP = () => {
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-heading font-extrabold tracking-tight">
+            {wizardStep === STEP_PLANTS && 'Các loại cây cảnh tại Queen'}
             {wizardStep === STEP_GUIDE && 'Hướng dẫn chấm điểm'}
             {wizardStep === STEP_CRITERIA && 'Đánh giá các tiêu chí'}
             {wizardStep === STEP_QUESTIONS && 'Câu hỏi lọc cây'}
@@ -799,7 +818,73 @@ const TuVanAHP = () => {
       <div className="container mx-auto px-4 lg:px-6 py-8 lg:py-10 max-w-5xl">
         <StepProgress current={wizardStep} total={Math.min(totalWizardSteps, 8)} />
 
-        {/* STEP 0: Guide */}
+        {/* STEP 0: Plant Gallery */}
+        {wizardStep === STEP_PLANTS && (
+          <div className="bg-white rounded-3xl shadow-[var(--shadow-md)] border border-gray-100/60 p-6 lg:p-9">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-emerald-100 mb-4">
+                <FaSeedling className="text-primary-500 text-lg" />
+              </div>
+              <h2 className="text-xl font-heading font-extrabold text-gray-800">Khám phá các loại cây cảnh</h2>
+              <p className="text-gray-400 text-sm mt-1">Tất cả các loại cây cảnh có trong hệ thống — hãy xem qua trước khi bắt đầu lựa chọn</p>
+            </div>
+
+            {loadingAllPlants ? (
+              <div className="flex justify-center py-16">
+                <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
+              </div>
+            ) : allPlants.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {allPlants.map((plant, idx) => (
+                  <Link
+                    key={plant.cay_canh_id}
+                    to={`/cay-canh/${plant.cay_canh_id}`}
+                    className="group bg-white rounded-2xl border border-gray-100 shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow-md)] hover:border-primary-100 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                    style={{ animationDelay: `${idx * 0.05}s` }}
+                  >
+                    <div className="relative h-44 overflow-hidden bg-gray-50">
+                      <img
+                        src={plant.hinh_anh ? `${API_URL}/static/images/${plant.hinh_anh}` : ''}
+                        alt={plant.ten_cay}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f0fdf4' width='400' height='400'/%3E%3Ctext x='200' y='180' text-anchor='middle' font-size='60' fill='%2322c55e'%3E🌿%3C/text%3E%3Ctext x='200' y='230' text-anchor='middle' font-size='16' fill='%2386efac'%3EKhông có hình%3C/text%3E%3C/svg%3E"
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      {plant.loai_cay && (
+                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-lg text-[10px] font-bold text-primary-700 shadow-sm">
+                          {plant.loai_cay.ten_loai}
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h4 className="font-heading font-bold text-gray-800 text-[15px] mb-1 group-hover:text-primary-600 transition-colors truncate">{plant.ten_cay}</h4>
+                      <p className="text-gray-400 text-xs leading-relaxed line-clamp-2 mb-3 min-h-[32px]">{plant.mo_ta || 'Cây cảnh trang trí'}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-primary-600 font-bold text-sm">
+                          {plant.gia ? new Intl.NumberFormat('vi-VN').format(plant.gia) + 'đ' : ''}
+                        </span>
+                        <span className="text-xs text-gray-400 flex items-center gap-1 group-hover:text-primary-500 transition-colors">
+                          Xem chi tiết <FaChevronRight className="text-[8px]" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-400">
+                <FaSeedling className="text-3xl mx-auto mb-3 text-gray-300" />
+                <p>Chưa có dữ liệu cây cảnh</p>
+              </div>
+            )}
+            <WizardNav onNext={handleNext} showBack={false} />
+          </div>
+        )}
+
+        {/* STEP 1: Guide */}
         {wizardStep === STEP_GUIDE && (
           <div className="bg-white rounded-3xl shadow-[var(--shadow-md)] border border-gray-100/60 p-6 lg:p-9">
             <div className="max-w-3xl mx-auto">
@@ -1014,6 +1099,111 @@ const TuVanAHP = () => {
         {/* STEP 3..N: Alt Matrices */}
         {wizardStep >= STEP_ALT_START && wizardStep < STEP_RESULTS && currentCriterion && (
           <div className="space-y-6">
+            {/* Hiển thị thông tin các cây đã lọc */}
+            {filteredPlants.length > 0 && (
+              <div className="bg-white rounded-3xl shadow-[var(--shadow-sm)] border border-gray-100/60 p-6 lg:p-8">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-9 h-9 bg-gradient-to-br from-emerald-100 to-primary-100 rounded-xl flex items-center justify-center">
+                    <FaSeedling className="text-primary-500 text-sm" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-bold text-gray-800 text-sm">Các cây đang được so sánh ({filteredPlants.length} cây)</h3>
+                    <p className="text-gray-400 text-xs">Dựa trên nhu cầu của bạn, hệ thống đã lọc ra các cây sau</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredPlants.map((plant) => (
+                    <div key={plant.cay_canh_id} className="relative group/card">
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-gray-50 to-primary-50/30 border border-gray-100 hover:border-primary-300 hover:shadow-md transition-all duration-200 cursor-pointer">
+                        <img
+                          src={plant.hinh_anh ? `${API_URL}/static/images/${plant.hinh_anh}` : ''}
+                          alt={plant.ten_cay}
+                          className="w-14 h-14 object-cover rounded-xl flex-shrink-0 shadow-sm"
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f0fdf4' width='400' height='400'/%3E%3Ctext x='200' y='180' text-anchor='middle' font-size='60' fill='%2322c55e'%3E🌿%3C/text%3E%3Ctext x='200' y='230' text-anchor='middle' font-size='16' fill='%2386efac'%3EKhông có hình%3C/text%3E%3C/svg%3E"
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-800 text-sm truncate">{plant.ten_cay}</h4>
+                          {plant.gia > 0 && (
+                            <p className="text-primary-600 text-xs font-bold mt-0.5">
+                              {new Intl.NumberFormat('vi-VN').format(plant.gia)}đ
+                            </p>
+                          )}
+                        </div>
+                        <FaInfoCircle className="text-gray-300 group-hover/card:text-primary-400 transition-colors text-xs flex-shrink-0" />
+                      </div>
+
+                      {/* Hover Popup */}
+                      <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-3 w-72 opacity-0 invisible group-hover/card:opacity-100 group-hover/card:visible transition-all duration-300 pointer-events-none group-hover/card:pointer-events-auto group-hover/card:-translate-y-0 translate-y-2">
+                        <div className="bg-white rounded-2xl shadow-2xl border border-gray-200/80 overflow-hidden">
+                          {/* Popup Image */}
+                          <div className="relative h-40 overflow-hidden bg-gray-50">
+                            <img
+                              src={plant.hinh_anh ? `${API_URL}/static/images/${plant.hinh_anh}` : ''}
+                              alt={plant.ten_cay}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.onerror = null
+                                e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f0fdf4' width='400' height='400'/%3E%3Ctext x='200' y='180' text-anchor='middle' font-size='60' fill='%2322c55e'%3E🌿%3C/text%3E%3Ctext x='200' y='230' text-anchor='middle' font-size='16' fill='%2386efac'%3EKhông có hình%3C/text%3E%3C/svg%3E"
+                              }}
+                            />
+                            {plant.gia > 0 && (
+                              <span className="absolute top-3 right-3 px-3 py-1 bg-primary-500 text-white text-xs font-bold rounded-lg shadow-md">
+                                {new Intl.NumberFormat('vi-VN').format(plant.gia)}đ
+                              </span>
+                            )}
+                          </div>
+                          {/* Popup Info */}
+                          <div className="p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-heading font-bold text-gray-800 text-[15px]">{plant.ten_cay}</h4>
+                              {plant.loai_cay && (
+                                <span className="px-2 py-0.5 bg-primary-50 text-primary-600 text-[10px] font-bold rounded-md border border-primary-100">
+                                  {plant.loai_cay}
+                                </span>
+                              )}
+                            </div>
+                            {plant.gia > 0 && (
+                              <p className="text-primary-600 font-bold text-sm mb-2">
+                                {new Intl.NumberFormat('vi-VN').format(plant.gia)}đ
+                              </p>
+                            )}
+                            {plant.mo_ta ? (
+                              <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-2">{plant.mo_ta}</p>
+                            ) : (
+                              <p className="text-gray-400 text-xs italic mb-2">Cây cảnh trang trí đẹp mắt</p>
+                            )}
+                            {/* Đặc điểm */}
+                            {plant.dac_diems && plant.dac_diems.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mb-2">
+                                {plant.dac_diems.map((dd, i) => (
+                                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-medium rounded-md border border-emerald-100">
+                                    <FaCheckCircle className="text-[8px]" /> {dd}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
+                              <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                                <FaSeedling className="text-primary-300" /> Đang so sánh
+                              </span>
+                              <Link to={`/cay-canh/${plant.cay_canh_id}`} className="text-[10px] text-primary-500 font-semibold hover:text-primary-700 flex items-center gap-1 transition-colors">
+                                Xem chi tiết <FaChevronRight className="text-[7px]" />
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Arrow */}
+                        <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-4 h-4 bg-white border-r border-b border-gray-200/80 transform rotate-45 shadow-sm" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-3xl shadow-[var(--shadow-sm)] border border-gray-100/60 p-6 lg:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
