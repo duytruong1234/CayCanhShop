@@ -236,7 +236,7 @@ const Home = () => {
 
             <span className="inline-block text-primary-600 text-sm font-semibold tracking-wider uppercase mb-3">Tính năng đặc biệt</span>
             <h2 className="section-heading">Không biết chọn cây nào?</h2>
-            <p className="text-gray-500 mb-10 text-lg leading-relaxed max-w-lg mx-auto">
+            <p className="text-gray-500 mb-10 text-lg leading-relaxed max-w-xl mx-auto">
               Hãy để chúng tôi giúp bạn! Hệ thống tư vấn thông minh sẽ gợi ý
               loại cây phù hợp nhất với không gian và nhu cầu của bạn.
             </p>

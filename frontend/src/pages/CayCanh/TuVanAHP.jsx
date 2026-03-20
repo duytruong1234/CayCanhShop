@@ -78,7 +78,7 @@ const calcWeightsAndCR = (matrix, keys) => {
 }
 
 const snapToAHPScale = (val) => {
-  const scales = [1/9, 1/8, 1/7, 1/6, 1/5, 1/4, 1/3, 1/2, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  const scales = [1 / 9, 1 / 8, 1 / 7, 1 / 6, 1 / 5, 1 / 4, 1 / 3, 1 / 2, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   let closest = scales[0]
   let minDiff = Math.abs(val - closest)
   for (const s of scales) {
@@ -104,8 +104,8 @@ const findInconsistentPairs = (matrix, keys) => {
           // Xác định ô nào sai nhất: so sánh 3 khả năng sửa
           const fixOptions = [
             { fixRow: a, fixCol: c, current: ac, suggested: snapToAHPScale(ab * bc), via: [a, b, c], viaAB: ab, viaBC: bc, deviation: Math.abs(Math.log(ac / (ab * bc))) },
-            { fixRow: a, fixCol: b, current: ab, suggested: snapToAHPScale(ac / bc), via: [a, c, b], viaAB: ac, viaBC: 1/bc, deviation: Math.abs(Math.log(ab / (ac / bc))) },
-            { fixRow: b, fixCol: c, current: bc, suggested: snapToAHPScale(ac / ab), via: [b, a, c], viaAB: 1/ab, viaBC: ac, deviation: Math.abs(Math.log(bc / (ac / ab))) },
+            { fixRow: a, fixCol: b, current: ab, suggested: snapToAHPScale(ac / bc), via: [a, c, b], viaAB: ac, viaBC: 1 / bc, deviation: Math.abs(Math.log(ab / (ac / bc))) },
+            { fixRow: b, fixCol: c, current: bc, suggested: snapToAHPScale(ac / ab), via: [b, a, c], viaAB: 1 / ab, viaBC: ac, deviation: Math.abs(Math.log(bc / (ac / ab))) },
           ]
           // Chọn ô có độ lệch lớn nhất để gợi ý sửa
           fixOptions.sort((x, y) => y.deviation - x.deviation)
@@ -142,17 +142,15 @@ const StepProgress = ({ current, total, labels }) => (
     <div className="flex items-center justify-center gap-0.5 sm:gap-1 min-w-0">
       {Array.from({ length: total }, (_, i) => (
         <div key={i} className="flex items-center">
-          <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all duration-500 flex-shrink-0 ${
-            i < current ? 'bg-primary-500 text-white shadow-md' :
+          <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all duration-500 flex-shrink-0 ${i < current ? 'bg-primary-500 text-white shadow-md' :
             i === current ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg scale-110' :
-            'bg-gray-100 text-gray-400'
-          }`}>
+              'bg-gray-100 text-gray-400'
+            }`}>
             {i < current ? <FaCheckCircle className="text-[10px]" /> : i + 1}
           </div>
           {i < total - 1 && (
-            <div className={`h-0.5 w-4 sm:w-8 lg:w-12 mx-0.5 sm:mx-1 rounded transition-all duration-500 ${
-              i < current ? 'bg-primary-400' : 'bg-gray-200'
-            }`} />
+            <div className={`h-0.5 w-4 sm:w-8 lg:w-12 mx-0.5 sm:mx-1 rounded transition-all duration-500 ${i < current ? 'bg-primary-400' : 'bg-gray-200'
+              }`} />
           )}
         </div>
       ))}
@@ -258,9 +256,8 @@ const WeightBar = ({ label, value, maxValue = 1 }) => {
 const CRBadge = ({ value }) => {
   const good = value < 0.1
   return (
-    <div className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold ${
-      good ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-    }`}>
+    <div className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold ${good ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+      }`}>
       {good ? <FaCheckCircle className="text-green-500" /> : <FaExclamationTriangle className="text-red-500" />}
       CR = {value.toFixed(4)} {good ? '✓ Nhất quán' : '✗ Chưa nhất quán'}
     </div>
@@ -313,7 +310,7 @@ const CRErrorDetails = ({ crValue, issues, nameMap, getLabel }) => {
                 CR (Consistency Ratio) là gì?
               </h4>
               <p className="leading-relaxed">
-                CR đo lường mức độ <strong>nhất quán</strong> trong các đánh giá so sánh cặp của bạn.  
+                CR đo lường mức độ <strong>nhất quán</strong> trong các đánh giá so sánh cặp của bạn.
                 Trong phương pháp AHP, khi bạn so sánh nhiều cặp tiêu chí, các đánh giá cần phải <em>logic với nhau</em>.
               </p>
             </div>
@@ -324,7 +321,7 @@ const CRErrorDetails = ({ crValue, issues, nameMap, getLabel }) => {
               </h4>
               <div className="bg-amber-50/60 rounded-lg p-3 border border-amber-100">
                 <p className="leading-relaxed">
-                  Giả sử bạn đánh giá: <strong>A</strong> quan trọng gấp <strong className="text-blue-600">3 lần</strong> B, 
+                  Giả sử bạn đánh giá: <strong>A</strong> quan trọng gấp <strong className="text-blue-600">3 lần</strong> B,
                   và <strong>B</strong> quan trọng gấp <strong className="text-blue-600">3 lần</strong> C.
                   <br />
                   → Theo logic, A phải quan trọng gấp khoảng <strong className="text-green-600">9 lần</strong> C.
@@ -553,7 +550,7 @@ const TuVanAHP = () => {
               <FaLeaf />
             </div>
           </div>
-          <div className="container mx-auto px-4 lg:px-6 relative z-10 text-center max-w-3xl">
+          <div className="container mx-auto px-4 lg:px-6 relative z-10 text-center max-w-4xl">
             {/* Decorative pills */}
             <div className="flex items-center justify-center gap-3 mb-6">
               <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 backdrop-blur-sm border border-white/15 text-primary-200">
@@ -563,8 +560,9 @@ const TuVanAHP = () => {
                 <FaSearch className="text-primary-300" /> Tìm kiếm thông minh
               </span>
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold mb-6 leading-[1.1] tracking-tight uppercase">
-              Hãy cùng Queen giúp bạn lựa cây cảnh phù hợp với bạn
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold mb-6 tracking-tight uppercase flex flex-col items-center gap-2 md:gap-3">
+              <span className="whitespace-nowrap">Hãy cùng Queen giúp bạn</span>
+              <span className="whitespace-nowrap">lựa cây cảnh phù hợp với bạn</span>
             </h1>
             <p className="text-primary-200/80 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed">
               Sử dụng phương pháp phân tích AHP chuyên nghiệp để tìm ra loại cây cảnh hoàn hảo dựa trên chính ưu tiên của bạn.
@@ -1056,15 +1054,13 @@ const TuVanAHP = () => {
             </div>
             <div className="space-y-5 max-w-2xl mx-auto">
               {QUESTIONS.map((q, idx) => (
-                <div key={idx} className={`rounded-2xl p-5 border-2 transition-all duration-300 ${
-                  answers[idx] ? 'bg-primary-50/30 border-primary-100' : 'bg-gray-50/60 border-gray-100/60 hover:border-gray-200'
-                }`}>
+                <div key={idx} className={`rounded-2xl p-5 border-2 transition-all duration-300 ${answers[idx] ? 'bg-primary-50/30 border-primary-100' : 'bg-gray-50/60 border-gray-100/60 hover:border-gray-200'
+                  }`}>
                   <p className="font-semibold text-gray-800 mb-4 flex items-start gap-3 text-[15px]">
-                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-sm transition-all ${
-                      answers[idx]
-                        ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-primary-200'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>{idx + 1}</span>
+                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-sm transition-all ${answers[idx]
+                      ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-primary-200'
+                      : 'bg-gray-100 text-gray-500'
+                      }`}>{idx + 1}</span>
                     <span>{q.question}</span>
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-11">
@@ -1072,15 +1068,13 @@ const TuVanAHP = () => {
                       <button
                         key={opt}
                         onClick={() => handleAnswer(idx, opt)}
-                        className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left text-sm font-medium transition-all duration-200 ${
-                          answers[idx] === opt
-                            ? 'border-primary-400 bg-white text-primary-700 shadow-md shadow-primary-100/50 -translate-y-0.5'
-                            : 'border-gray-200 text-gray-600 bg-white hover:border-gray-300 hover:shadow-sm'
-                        }`}
+                        className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left text-sm font-medium transition-all duration-200 ${answers[idx] === opt
+                          ? 'border-primary-400 bg-white text-primary-700 shadow-md shadow-primary-100/50 -translate-y-0.5'
+                          : 'border-gray-200 text-gray-600 bg-white hover:border-gray-300 hover:shadow-sm'
+                          }`}
                       >
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                          answers[idx] === opt ? 'bg-primary-500 border-primary-500 scale-110' : 'border-gray-300'
-                        }`}>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${answers[idx] === opt ? 'bg-primary-500 border-primary-500 scale-110' : 'border-gray-300'
+                          }`}>
                           {answers[idx] === opt && (
                             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                           )}
@@ -1350,27 +1344,25 @@ const TuVanAHP = () => {
                   {finalResults.map((plant, index) => (
                     <div
                       key={plant.cay_canh_id}
-                      className={`relative p-4 sm:p-5 pr-24 sm:pr-40 rounded-2xl border-2 transition-all duration-300 ${
-                        index === 0
-                          ? 'border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50/60 to-amber-50/30 shadow-lg shadow-amber-100/50 -translate-y-0.5'
-                          : index === 1
+                      className={`relative p-4 sm:p-5 pr-24 sm:pr-40 rounded-2xl border-2 transition-all duration-300 ${index === 0
+                        ? 'border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50/60 to-amber-50/30 shadow-lg shadow-amber-100/50 -translate-y-0.5'
+                        : index === 1
                           ? 'border-gray-200 bg-gradient-to-r from-gray-50 to-slate-50/40 shadow-md'
                           : index === 2
-                          ? 'border-amber-200/60 bg-gradient-to-r from-orange-50/30 to-amber-50/20 shadow-sm'
-                          : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
-                      }`}
+                            ? 'border-amber-200/60 bg-gradient-to-r from-orange-50/30 to-amber-50/20 shadow-sm'
+                            : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
+                        }`}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
                       {/* Top row: rank + image + name */}
                       <div className="flex items-center gap-3 sm:gap-5">
                         {/* Rank Medal */}
                         <div className="relative flex-shrink-0">
-                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-heading font-extrabold text-base sm:text-lg ${
-                            index === 0 ? 'bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-200' :
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-heading font-extrabold text-base sm:text-lg ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-200' :
                             index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-md shadow-slate-200' :
-                            index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-200' :
-                            'bg-gray-100 text-gray-500'
-                          }`}>
+                              index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-200' :
+                                'bg-gray-100 text-gray-500'
+                            }`}>
                             {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                           </div>
                           {index === 0 && (
@@ -1382,9 +1374,8 @@ const TuVanAHP = () => {
                         <img
                           src={plant.hinh_anh ? `${API_URL}/static/images/${plant.hinh_anh}` : ''}
                           alt={plant.ten_cay}
-                          className={`w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-xl flex-shrink-0 ${
-                            index === 0 ? 'shadow-md ring-2 ring-amber-200' : 'shadow-sm'
-                          }`}
+                          className={`w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-xl flex-shrink-0 ${index === 0 ? 'shadow-md ring-2 ring-amber-200' : 'shadow-sm'
+                            }`}
                           onError={(e) => {
                             e.target.onerror = null
                             e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f0fdf4' width='400' height='400'/%3E%3Ctext x='200' y='180' text-anchor='middle' font-size='60' fill='%2322c55e'%3E🌿%3C/text%3E%3Ctext x='200' y='230' text-anchor='middle' font-size='16' fill='%2386efac'%3EKhông có hình ảnh%3C/text%3E%3C/svg%3E"
@@ -1393,23 +1384,20 @@ const TuVanAHP = () => {
 
                         {/* Name + Score */}
                         <div className="flex-1 min-w-0">
-                          <h4 className={`font-semibold text-sm sm:text-[15px] truncate ${
-                            index === 0 ? 'text-amber-800' : 'text-gray-800'
-                          }`}>{plant.ten_cay}</h4>
+                          <h4 className={`font-semibold text-sm sm:text-[15px] truncate ${index === 0 ? 'text-amber-800' : 'text-gray-800'
+                            }`}>{plant.ten_cay}</h4>
                           <div className="flex items-center gap-2 mt-1.5">
                             <div className="flex-1 bg-gray-100 rounded-full h-2.5 sm:h-3 overflow-hidden">
                               <div
-                                className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                                  index === 0 ? 'bg-gradient-to-r from-amber-400 to-yellow-400' :
+                                className={`h-full rounded-full transition-all duration-1000 ease-out ${index === 0 ? 'bg-gradient-to-r from-amber-400 to-yellow-400' :
                                   index === 1 ? 'bg-gradient-to-r from-slate-400 to-gray-400' :
-                                  'bg-gradient-to-r from-primary-400 to-primary-500'
-                                }`}
+                                    'bg-gradient-to-r from-primary-400 to-primary-500'
+                                  }`}
                                 style={{ width: `${plant.score}%` }}
                               />
                             </div>
-                            <span className={`text-xs sm:text-sm font-bold flex-shrink-0 ${
-                              index === 0 ? 'text-amber-600' : 'text-primary-600'
-                            }`}>{plant.score}%</span>
+                            <span className={`text-xs sm:text-sm font-bold flex-shrink-0 ${index === 0 ? 'text-amber-600' : 'text-primary-600'
+                              }`}>{plant.score}%</span>
                           </div>
                         </div>
                       </div>
@@ -1418,9 +1406,8 @@ const TuVanAHP = () => {
                       <div className="mt-3 sm:mt-0 sm:absolute sm:right-5 sm:top-1/2 sm:-translate-y-1/2">
                         <Link
                           to={`/cay-canh/${plant.cay_canh_id}`}
-                          className={`btn-premium text-xs py-2.5 px-5 gap-1.5 w-full sm:w-auto justify-center ${
-                            index === 0 ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-md shadow-amber-200 hover:shadow-lg' : 'btn-primary shadow-md'
-                          }`}
+                          className={`btn-premium text-xs py-2.5 px-5 gap-1.5 w-full sm:w-auto justify-center ${index === 0 ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-md shadow-amber-200 hover:shadow-lg' : 'btn-primary shadow-md'
+                            }`}
                         >
                           <FaShoppingCart className="text-[10px]" /> Xem & Mua
                         </Link>
