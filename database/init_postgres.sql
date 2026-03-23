@@ -2497,6 +2497,39 @@ ALTER TABLE ONLY public."TrongSoPhuongAn"
     ADD CONSTRAINT "TrongSoPhuongAn_MaTieuChi_fkey" FOREIGN KEY ("MaTieuChi") REFERENCES public."TieuChi"("MaTieuChi");
 
 
+--
+-- LichSuAHP - Lưu lịch sử đánh giá AHP của khách hàng
+--
+
+CREATE SEQUENCE public."LichSuAHP_LichSuAHPID_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public."LichSuAHP_LichSuAHPID_seq" OWNER TO postgres;
+
+CREATE TABLE public."LichSuAHP" (
+    "LichSuAHPID" integer NOT NULL DEFAULT nextval('public."LichSuAHP_LichSuAHPID_seq"'::regclass),
+    "TaiKhoanID" integer NOT NULL,
+    "NgayDanhGia" timestamp without time zone DEFAULT now(),
+    "TrongSoTieuChi" text,
+    "CRTieuChi" double precision,
+    "CauTraLoi" text,
+    "KetQua" text,
+    "CayDuocChonID" integer,
+    CONSTRAINT "LichSuAHP_pkey" PRIMARY KEY ("LichSuAHPID"),
+    CONSTRAINT "LichSuAHP_TaiKhoanID_fkey" FOREIGN KEY ("TaiKhoanID") REFERENCES public."TaiKhoan"("TaiKhoanID"),
+    CONSTRAINT "LichSuAHP_CayDuocChonID_fkey" FOREIGN KEY ("CayDuocChonID") REFERENCES public."CayCanh"("CayCanhID")
+);
+
+ALTER TABLE public."LichSuAHP" OWNER TO postgres;
+
+ALTER SEQUENCE public."LichSuAHP_LichSuAHPID_seq" OWNED BY public."LichSuAHP"."LichSuAHPID";
+
+
 -- Completed on 2026-03-12 21:07:11
 
 --

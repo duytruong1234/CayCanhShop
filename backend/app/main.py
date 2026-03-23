@@ -6,12 +6,14 @@ import os
 from app.config import settings
 from app.routers import auth, cay_canh, gio_hang, don_hang, binh_luan
 from app.routers import dac_diem, tieu_chi, phuong_an, ahp_recommend
+from app.routers import lich_su_ahp
 from app.routers.admin import cay_canh as admin_cay_canh
 from app.routers.admin import bai_viet as admin_bai_viet
 from app.routers.admin import don_hang as admin_don_hang
 from app.routers.admin import khach_hang as admin_khach_hang
 from app.routers.admin import ton_kho as admin_ton_kho
 from app.routers.admin import thong_ke as admin_thong_ke
+from app.routers.admin import lich_su_ahp as admin_lich_su_ahp
 
 # Tạo FastAPI app
 app = FastAPI(
@@ -66,6 +68,7 @@ app.include_router(dac_diem.router)
 app.include_router(tieu_chi.router)
 app.include_router(phuong_an.router)
 app.include_router(ahp_recommend.router)
+app.include_router(lich_su_ahp.router)
 
 # Route quản trị (Admin)
 app.include_router(admin_cay_canh.router)
@@ -74,6 +77,7 @@ app.include_router(admin_don_hang.router)
 app.include_router(admin_khach_hang.router)
 app.include_router(admin_ton_kho.router)
 app.include_router(admin_thong_ke.router)
+app.include_router(admin_lich_su_ahp.router)
 
 
 # ==================== ENDPOINT GỐC ====================

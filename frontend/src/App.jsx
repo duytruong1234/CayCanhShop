@@ -19,6 +19,7 @@ import DatHang from './pages/GioHang/DatHang'
 import DonHangCuaToi from './pages/DonHang/DonHangCuaToi'
 import DonHangChiTiet from './pages/DonHang/DonHangChiTiet'
 import Profile from './pages/Profile/Profile'
+import LichSuAHP from './pages/Profile/LichSuAHP'
 
 // Các trang - Admin
 import AdminDashboard from './pages/Admin/Dashboard'
@@ -53,6 +54,7 @@ function App() {
           <Route path="don-hang" element={<DonHangCuaToi />} />
           <Route path="don-hang/:id" element={<DonHangChiTiet />} />
           <Route path="tai-khoan" element={<Profile />} />
+          <Route path="lich-su-ahp" element={<LichSuAHP />} />
         </Route>
       </Route>
 

@@ -14,10 +14,12 @@ from app.models.mo_ta_chi_tiet import MoTaChiTiet
 from app.models.cach_cham_soc import CachChamSoc
 from app.models.dac_diem_noi_bat import DacDiemNoiBat
 from app.models.thong_tin_khoa_hoc import ThongTinKhoaHoc
+from app.models.lich_su_ahp import LichSuAHP
 
 __all__ = [
     "VaiTro", "TaiKhoan", "KhachHang", "ChucVu", "NhanVien",
     "LoaiCay", "CayCanh", "TonKho", "GioHang", "GioHangChiTiet",
     "DonHang", "CTDonHang", "BinhLuan", "MoTaChiTiet",
-    "CachChamSoc", "DacDiemNoiBat", "ThongTinKhoaHoc"
+    "CachChamSoc", "DacDiemNoiBat", "ThongTinKhoaHoc",
+    "LichSuAHP"
 ]

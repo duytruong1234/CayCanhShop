@@ -36,5 +36,23 @@ export const ahpService = {
   getPlantMatrix: async (maTieuChi) => {
     const response = await api.get(`/phuong-an/${maTieuChi}`)
     return response.data
+  },
+
+  // Lưu lịch sử đánh giá AHP
+  saveAHPHistory: async (data) => {
+    const response = await api.post('/lich-su-ahp/', data)
+    return response.data
+  },
+
+  // Lấy lịch sử AHP của user hiện tại
+  getMyAHPHistory: async () => {
+    const response = await api.get('/lich-su-ahp/')
+    return response.data
+  },
+
+  // Admin: Lấy lịch sử AHP của 1 khách hàng
+  getAHPHistoryByUser: async (taiKhoanId) => {
+    const response = await api.get(`/admin/lich-su-ahp/${taiKhoanId}`)
+    return response.data
   }
-}
+}

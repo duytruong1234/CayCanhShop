@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
-import { FaUser, FaEdit, FaLock, FaSignOutAlt, FaChevronLeft, FaTimes, FaBox } from 'react-icons/fa'
+import { FaUser, FaEdit, FaLock, FaSignOutAlt, FaChevronLeft, FaTimes, FaBox, FaHistory } from 'react-icons/fa'
 
 const Profile = () => {
   const navigate = useNavigate()
@@ -167,13 +167,16 @@ const Profile = () => {
           <button onClick={() => navigate('/don-hang')} className="flex items-center justify-center gap-2.5 bg-white rounded-2xl shadow-[var(--shadow-sm)] border border-gray-100/60 p-4 text-sm font-semibold text-gray-700 hover:border-blue-200 hover:bg-blue-50/30 hover:text-blue-600 transition-all duration-300">
             <FaBox className="text-blue-500" /> Đơn hàng của tôi
           </button>
+          <button onClick={() => navigate('/lich-su-ahp')} className="flex items-center justify-center gap-2.5 bg-white rounded-2xl shadow-[var(--shadow-sm)] border border-gray-100/60 p-4 text-sm font-semibold text-gray-700 hover:border-green-200 hover:bg-green-50/30 hover:text-green-600 transition-all duration-300">
+            <FaHistory className="text-green-500" /> Lịch sử tư vấn AHP
+          </button>
           <button onClick={() => setShowUpdateModal(true)} className="flex items-center justify-center gap-2.5 bg-white rounded-2xl shadow-[var(--shadow-sm)] border border-gray-100/60 p-4 text-sm font-semibold text-gray-700 hover:border-amber-200 hover:bg-amber-50/30 hover:text-amber-600 transition-all duration-300">
             <FaEdit className="text-amber-500" /> Cập nhật thông tin
           </button>
           <button onClick={() => setShowPasswordModal(true)} className="flex items-center justify-center gap-2.5 bg-white rounded-2xl shadow-[var(--shadow-sm)] border border-gray-100/60 p-4 text-sm font-semibold text-gray-700 hover:border-red-200 hover:bg-red-50/30 hover:text-red-600 transition-all duration-300">
             <FaLock className="text-red-500" /> Đổi mật khẩu
           </button>
-          <button onClick={handleLogout} className="flex items-center justify-center gap-2.5 bg-white rounded-2xl shadow-[var(--shadow-sm)] border border-gray-100/60 p-4 text-sm font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all duration-300">
+          <button onClick={handleLogout} className="flex items-center justify-center gap-2.5 bg-white rounded-2xl shadow-[var(--shadow-sm)] border border-gray-100/60 p-4 text-sm font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all duration-300 sm:col-span-2">
             <FaSignOutAlt className="text-gray-400" /> Đăng xuất
           </button>
         </div>

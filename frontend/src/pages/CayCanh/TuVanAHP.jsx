@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ahpService } from '../../services/ahpService'
 import { cayCanhService } from '../../services/cayCanhService'
-import { FaLeaf, FaArrowRight, FaArrowLeft, FaChevronRight, FaCheckCircle, FaExclamationTriangle, FaRedo, FaShoppingCart, FaInfoCircle, FaChevronDown, FaChevronUp, FaSeedling, FaSearch } from 'react-icons/fa'
+import { useAuth } from '../../context/AuthContext'
+import { FaLeaf, FaArrowRight, FaArrowLeft, FaChevronRight, FaCheckCircle, FaExclamationTriangle, FaRedo, FaShoppingCart, FaInfoCircle, FaChevronDown, FaChevronUp, FaSeedling, FaSearch, FaSave, FaHistory } from 'react-icons/fa'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -351,6 +352,7 @@ const CRErrorDetails = ({ crValue, issues, nameMap, getLabel }) => {
 
 // ===== MAIN COMPONENT =====
 const TuVanAHP = () => {
+  const { user } = useAuth()
   const [phase, setPhase] = useState('intro')
   const [wizardStep, setWizardStep] = useState(0)
   const [tieuChis, setTieuChis] = useState([])
@@ -367,6 +369,8 @@ const TuVanAHP = () => {
   const [finalResults, setFinalResults] = useState([])
   const [allPlants, setAllPlants] = useState([])
   const [loadingAllPlants, setLoadingAllPlants] = useState(false)
+  const [historySaved, setHistorySaved] = useState(false)
+  const hasSavedRef = useRef(false)
 
   const { data: options } = useQuery({
     queryKey: ['ahp-options'],
@@ -495,7 +499,37 @@ const TuVanAHP = () => {
     })
     results.sort((a, b) => b.score - a.score)
     setFinalResults(results)
+    setHistorySaved(false)
+    hasSavedRef.current = false
   }
+
+  // Auto-save lịch sử AHP khi có kết quả và user đã đăng nhập
+  useEffect(() => {
+    if (finalResults.length === 0 || !user || hasSavedRef.current) return
+    hasSavedRef.current = true
+
+    const saveHistory = async () => {
+      try {
+        const data = {
+          trong_so_tieu_chi: criteriaWeights,
+          cr_tieu_chi: criteriaCR,
+          cau_tra_loi: answers,
+          ket_qua: finalResults.map(p => ({
+            cay_canh_id: p.cay_canh_id,
+            ten_cay: p.ten_cay,
+            score: p.score
+          })),
+          cay_duoc_chon_id: finalResults[0]?.cay_canh_id || null
+        }
+        await ahpService.saveAHPHistory(data)
+        setHistorySaved(true)
+      } catch (err) {
+        console.error('Lỗi lưu lịch sử AHP:', err)
+        hasSavedRef.current = false
+      }
+    }
+    saveHistory()
+  }, [finalResults, user])
 
   const STEP_PLANTS = 0, STEP_GUIDE = 1, STEP_CRITERIA = 2, STEP_QUESTIONS = 3, STEP_ALT_START = 4
   const STEP_RESULTS = 4 + tieuChis.length
@@ -1418,6 +1452,19 @@ const TuVanAHP = () => {
               </div>
             )}
 
+            {/* Save status indicator */}
+            {historySaved && (
+              <div className="flex items-center justify-center gap-2 mt-6 py-3 px-5 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 font-medium">
+                <FaSave className="text-green-500" />
+                Kết quả đã được lưu vào lịch sử của bạn
+              </div>
+            )}
+            {!user && finalResults.length > 0 && (
+              <div className="flex items-center justify-center gap-2 mt-6 py-3 px-5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium">
+                <FaHistory className="text-amber-500" />
+                <span>Hãy <Link to="/dang-nhap" className="underline font-bold hover:text-amber-900">đăng nhập</Link> để lưu lại kết quả này</span>
+              </div>
+            )}
             <div className="flex justify-center gap-4 mt-10 pt-6 border-t border-gray-100 relative z-10">
               <button
                 onClick={() => {
@@ -1433,7 +1480,8 @@ const TuVanAHP = () => {
                 onClick={() => {
                   setPhase('intro'); setWizardStep(0); setAnswers({})
                   setFilteredPlants([]); setAltMatrices({}); setAltWeights({})
-                  setAltCRs({}); setFinalResults([]); window.scrollTo(0, 0)
+                  setAltCRs({}); setFinalResults([]); setHistorySaved(false)
+                  hasSavedRef.current = false; window.scrollTo(0, 0)
                 }}
                 className="btn-premium btn-primary text-sm py-3 px-6 gap-2 shadow-md"
               >
