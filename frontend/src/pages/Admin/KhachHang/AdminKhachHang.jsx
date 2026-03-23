@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { FaPlus, FaTrash, FaSearch, FaUsers, FaHistory, FaLeaf } from 'react-icons/fa'
+import { FaPlus, FaTrash, FaSearch, FaUsers, FaHistory, FaLeaf, FaFileExcel } from 'react-icons/fa'
 import api from '../../../services/api'
 import { ahpService } from '../../../services/ahpService'
+import * as XLSX from 'xlsx'
 
 const AdminKhachHang = () => {
     const [users, setUsers] = useState([])
@@ -67,6 +68,41 @@ const AdminKhachHang = () => {
         return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     }
 
+
+    // ===== EXPORT EXCEL =====
+    const exportExcel = () => {
+        if (!ahpHistory || ahpHistory.lich_su.length === 0) return
+        const userName = selectedUser?.ho_ten || selectedUser?.ten_dang_nhap || 'Khach hang'
+
+        const rows = []
+        ahpHistory.lich_su.forEach((item, idx) => {
+            const weightsStr = item.trong_so_tieu_chi
+                ? Object.entries(item.trong_so_tieu_chi).map(([k, v]) => `${k}: ${(v * 100).toFixed(1)}%`).join(', ')
+                : ''
+            const topResults = item.ket_qua
+                ? item.ket_qua.slice(0, 5).map((p, i) => `${i + 1}. ${p.ten_cay} (${p.score}%)`).join(', ')
+                : ''
+
+            rows.push({
+                'Lần': ahpHistory.tong_so_lan - idx,
+                'Ngày đánh giá': formatDate(item.ngay_danh_gia),
+                'CR': item.cr_tieu_chi?.toFixed(4),
+                'Nhất quán': item.cr_tieu_chi < 0.1 ? 'Có' : 'Không',
+                'Trọng số tiêu chí': weightsStr,
+                'Top kết quả': topResults,
+                'Cây được chọn': item.ket_qua?.[0]?.ten_cay || ''
+            })
+        })
+
+        const ws = XLSX.utils.json_to_sheet(rows)
+        ws['!cols'] = [
+            { wch: 6 }, { wch: 22 }, { wch: 10 }, { wch: 12 }, { wch: 40 }, { wch: 50 }, { wch: 20 }
+        ]
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, 'Lịch sử AHP')
+        XLSX.writeFile(wb, `AHP_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.xlsx`)
+    }
+
     return (
         <div className="admin-page animate-fade-in">
             <div className="admin-page-header">
@@ -79,13 +115,14 @@ const AdminKhachHang = () => {
             {/* Search */}
             <div className="mb-5">
                 <div className="relative max-w-sm">
-                    <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                    <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" style={{ pointerEvents: 'none' }} />
                     <input
                         type="text"
                         placeholder="Tìm kiếm theo tên, email..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="admin-search pl-10 w-full"
+                        className="admin-search w-full"
+                        style={{ paddingLeft: '40px' }}
                     />
                 </div>
             </div>
@@ -293,7 +330,18 @@ const AdminKhachHang = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="admin-modal-footer">
+                        <div className="admin-modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                {ahpHistory && ahpHistory.tong_so_lan > 0 && (
+                                    <button
+                                        className="admin-btn admin-btn-sm"
+                                        style={{ background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', fontSize: '11px' }}
+                                        onClick={exportExcel}
+                                    >
+                                        <FaFileExcel size={12} /> Tải Excel
+                                    </button>
+                                )}
+                            </div>
                             <button className="admin-btn admin-btn-ghost" onClick={() => setShowAHPModal(false)}>Đóng</button>
                         </div>
                     </div>
