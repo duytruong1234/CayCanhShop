@@ -125,23 +125,55 @@ def score_plant_by_criterion(plant: PlantInfo, ten_tieu_chi: str) -> float:
 
 
 def generate_nlg_explanation(winner: PlantInfo, loser: PlantInfo, tc_name: str) -> str:
-    """Sinh ra câu giải thích bằng cách trực tiếp trích xuất chữ từ Database của cây chiến thắng"""
-    desc = (winner.mo_ta or "").strip()
-    if len(desc) > 65:
-        # Cắt chuỗi cho vừa vặn hiển thị
-        desc = desc[:65].rsplit(' ', 1)[0] + "..."
-        
-    dacs = winner.dac_diems or []
-    dac_str = ", ".join(dacs[:2]) if dacs else ""
+    """Sinh ra câu giải thích mượt mà, tự nhiên (NLG) giả lập con người"""
+    phrases = [
+        f"{winner.ten_cay} chiếm ưu thế hơn so với {loser.ten_cay}",
+        f"{winner.ten_cay} được đánh giá cao hơn",
+        f"{winner.ten_cay} là sự lựa chọn phù hợp hơn",
+        f"{winner.ten_cay} thể hiện tính vượt trội so với {loser.ten_cay}"
+    ]
+    # Chọn ngẫu nhiên có quy luật để tạo sự đa dạng nhưng cố định theo ID
+    base = phrases[(winner.cay_canh_id + loser.cay_canh_id) % len(phrases)]
     
-    if desc and dac_str:
-        return f"{winner.ten_cay} phù hợp hơn {loser.ten_cay} ({tc_name}) nhờ đặc tính '{dac_str}' và được mô tả: '{desc}'."
-    elif desc:
-        return f"{winner.ten_cay} phù hợp hơn {loser.ten_cay} ({tc_name}) vì được mô tả là: '{desc}'."
-    elif dac_str:
-        return f"{winner.ten_cay} nổi trội hơn {loser.ten_cay} ({tc_name}) nhờ sở hữu đặc điểm: '{dac_str}'."
+    # Phân tích dac_diems lấy lý do
+    dacs_upper = [d.upper() for d in (winner.dac_diems or [])]
+    reasons = []
+    
+    if any('HOA' in d for d in dacs_upper):
+        reasons.append("giá trị thẩm mỹ từ hoa")
+    if any('MÙI' in d or 'MUI' in d for d in dacs_upper):
+        reasons.append("đặc tính không gây mùi khó chịu")
+    if any('CHĂM' in d or 'CHAM' in d for d in dacs_upper):
+        reasons.append("không đòi hỏi quy trình chăm sóc khắt khe")
+    if any('ĐỘC' in d or 'DOC' in d for d in dacs_upper) or any('AN TOÀN' in d for d in dacs_upper):
+        reasons.append("tính an toàn, thân thiện")
+    if any('LỌC' in d or 'LOC' in d for d in dacs_upper):
+        reasons.append("khả năng thanh lọc không khí hiệu quả")
+    if any('BỀN' in d or 'SỨC SỐNG' in d for d in dacs_upper):
+        reasons.append("dễ duy trì sức sống")
+
+    # Bổ sung lý do theo ngữ cảnh tiêu chí (tc_name)
+    if 'sáng' in tc_name or 'nắng' in tc_name or 'râm' in tc_name or 'trong nhà' in tc_name or 'thiếu' in tc_name:
+        if 'yếu' in tc_name or 'râm' in tc_name or 'trong nhà' in tc_name or 'mát' in tc_name or 'thiếu' in tc_name:
+            reasons.insert(0, f"sự bền bỉ trong môi trường {tc_name}")
+        else:
+            reasons.insert(0, f"sức chịu đựng vượt trội dưới điều kiện {tc_name}")
+    elif 'ẩm' in tc_name or 'nước' in tc_name or 'hạn' in tc_name or 'khô' in tc_name:
+        reasons.insert(0, f"cơ chế sinh lý phù hợp với môi trường {tc_name}")
     else:
-        return f"{winner.ten_cay} là ưu tiên cao hơn {loser.ten_cay} theo chuẩn AHP đối với {tc_name}."
+        if len(reasons) < 2:
+            reasons.insert(0, f"khả năng đáp ứng tốt tiêu chuẩn {tc_name}")
+            
+    # Lắp ráp câu văn nhân tính hóa mềm mại
+    if reasons:
+        if len(reasons) == 1:
+            return f"{base} nhờ {reasons[0]}."
+        elif len(reasons) == 2:
+            return f"{base} nhờ {reasons[0]}, kết hợp với {reasons[1]}."
+        else:
+            return f"{base} nhờ {reasons[0]}, kết hợp với {reasons[1]} và {reasons[2]}."
+    else:
+        return f"{base} khi xét đến đặc tính {tc_name}."
 
 
 def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str, ten_tieu_chi: str) -> tuple:
