@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { FaHome, FaLeaf, FaShoppingBag, FaUsers, FaBoxes, FaSignOutAlt, FaTags, FaBars, FaTimes } from 'react-icons/fa'
+import { FaHome, FaLeaf, FaShoppingBag, FaUsers, FaBoxes, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
@@ -13,7 +13,6 @@ const AdminLayout = () => {
   const menuItems = [
     { path: '/admin', icon: FaHome, label: 'Dashboard', exact: true },
     { path: '/admin/cay-canh', icon: FaLeaf, label: 'Quản lý cây cảnh' },
-    { path: '/admin/quan-ly-dac-diem', icon: FaTags, label: 'Quản lý đặc điểm' },
     { path: '/admin/don-hang', icon: FaShoppingBag, label: 'Quản lý đơn hàng' },
     { path: '/admin/khach-hang', icon: FaUsers, label: 'Quản lý khách hàng' },
     { path: '/admin/ton-kho', icon: FaBoxes, label: 'Quản lý tồn kho' },
