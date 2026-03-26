@@ -1,9 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-from app.config import settings
-import json
-import math
+
 
 router = APIRouter(
     prefix="/ai-suggest",
@@ -189,67 +187,10 @@ def local_suggest(request: AISuggestRequest) -> AISuggestResponse:
     return AISuggestResponse(suggestions=suggestions, summary=summary)
 
 
-async def gemini_suggest(request: AISuggestRequest, api_key: str) -> AISuggestResponse:
-    """Generate AHP suggestions using Gemini AI"""
-    from google import genai
-    client = genai.Client(api_key=api_key)
-    
-    plants_info = ""
-    for p in request.plants:
-        plants_info += f"- ID={p.cay_canh_id}, Tên: {p.ten_cay}"
-        if p.gia: plants_info += f", Giá: {int(p.gia):,}đ"
-        if p.loai_cay: plants_info += f", Loại: {p.loai_cay}"
-        if p.mo_ta: plants_info += f", Mô tả: {p.mo_ta[:100]}"
-        if p.dac_diems: plants_info += f", Đặc điểm: {', '.join(p.dac_diems)}"
-        plants_info += "\n"
-
-    pairs = []
-    for i in range(len(request.plants)):
-        for j in range(i + 1, len(request.plants)):
-            pairs.append((request.plants[i], request.plants[j]))
-
-    pairs_text = "\n".join(f"{idx+1}. {a.ten_cay} vs {b.ten_cay}" for idx, (a, b) in enumerate(pairs))
-
-    prompt = f"""Bạn là chuyên gia cây cảnh và AHP. Đánh giá các cặp cây theo tiêu chí "{request.ten_tieu_chi}" ({request.tieu_chi}).
-
-QUAN TRỌNG: BẠN CHỈ ĐƯỢC PHÉP CHẤM ĐIỂM VÀ LÝ GIẢI DỰA TRÊN THÔNG TIN DƯỚI ĐÂY (TỪ DATABASE MANG LÊN). TUYỆT ĐỐI KHÔNG BỊA ĐẶT THÊM KIẾN THỨC NGOÀI, KHÔNG TỰ CHẾ RA CÁC ĐẶC ĐIỂM KHÔNG CÓ TRONG DANH SÁCH "Đặc điểm" HAY "Mô tả".
-
-Cây: {plants_info}
-Cặp: {pairs_text}
-
-Cho điểm AHP quy chuẩn từ 1/9 đến 9. Score > 1 có nghĩa là A tốt hơn B. Score < 1 có nghĩa là B tốt hơn A.
-Trả về định dạng JSON thuần (không bọc trong tag markdown hay code block):
-{{"suggestions":[{{"plant_a_id":1,"plant_b_id":2,"plant_a_name":"...","plant_b_name":"...","score":3.0,"explanation":"Ngắn gọn lý do cụ thể theo data..."}}],"summary":"..."}}
-Score bắt buộc phải là số thập phân. Đánh giá tất cả {len(pairs)} cặp."""
-
-    response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
-    text = response.text.strip()
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1]
-        if "```" in text: text = text[:text.rfind("```")]
-    text = text.strip()
-    result = json.loads(text)
-    return AISuggestResponse(
-        suggestions=[PairSuggestion(**s) for s in result.get("suggestions", [])],
-        summary=result.get("summary", "AI đã phân tích xong.")
-    )
-
-
 @router.post("/goi-y-diem", response_model=AISuggestResponse)
 async def get_ai_suggestions(request: AISuggestRequest):
     """
-    Gợi ý điểm AHP. Ưu tiên dùng Gemini AI, nếu không có key hoặc lỗi thì dùng phân tích nội bộ.
+    Gợi ý điểm AHP sử dụng phân tích theo thuật toán nội bộ (Local Heuristic).
     """
-    api_key = settings.GEMINI_API_KEY
-    
-    # Nếu có Gemini key, thử dùng AI trước
-    if api_key:
-        try:
-            return await gemini_suggest(request, api_key)
-        except Exception as e:
-            error_str = str(e)
-            print(f"[AI-Suggest] Gemini failed: {error_str[:200]}, falling back to local analysis")
-            # Fallback to local analysis
-    
-    # Phân tích nội bộ (không cần API key)
     return local_suggest(request)
+

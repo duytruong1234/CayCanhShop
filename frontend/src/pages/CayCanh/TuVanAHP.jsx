@@ -456,15 +456,8 @@ const TuVanAHP = () => {
       const result = await ahpService.getAISuggestion(filteredPlants, currentCriterion.ma_tieu_chi, currentCriterion.ten_tieu_chi)
       setAiSuggestions(result)
     } catch (err) {
-      const status = err?.response?.status
       const detail = err?.response?.data?.detail
-      if (status === 429) {
-        setAiError('Vượt giới hạn API Gemini. Vui lòng đợi 1-2 phút rồi thử lại.')
-      } else if (status === 400) {
-        setAiError('Chưa cấu hình API Key Gemini. Vui lòng thêm GEMINI_API_KEY vào file backend/.env và bật billing tại aistudio.google.com/apikey')
-      } else {
-        setAiError(detail || 'AI không thể gợi ý lúc này. Vui lòng thử lại.')
-      }
+      setAiError(detail || 'Hệ thống AI nội bộ không thể gợi ý lúc này. Vui lòng thử lại sau.')
     } finally { setAiLoading(false) }
   }
 
