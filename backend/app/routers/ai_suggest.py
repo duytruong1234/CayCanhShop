@@ -49,54 +49,79 @@ def score_plant_by_criterion(plant: PlantInfo, ten_tieu_chi: str) -> float:
     """Score a plant based on a criterion name (higher = better)"""
     tc_name = ten_tieu_chi.lower()
     
+    score = 5.0
+    dacs = [d.upper() for d in (plant.dac_diems or [])]
+    desc = (plant.mo_ta or '').lower()
+    
     # 1. Liên quan đến "giá"
     if 'giá' in tc_name or 'rẻ' in tc_name:
         gia = plant.gia or 0
-        if gia <= 0: return 5.0
-        if gia < 50000: return 9
-        elif gia < 100000: return 7
-        elif gia < 200000: return 5
-        elif gia < 500000: return 3
-        else: return 1
+        if gia <= 0: score = 5.0
+        elif gia < 50000: score = 9.0
+        elif gia < 100000: score = 7.0
+        elif gia < 200000: score = 5.0
+        elif gia < 500000: score = 3.0
+        else: score = 1.0
 
     # 2. Liên quan đến "thẩm mỹ", "đẹp", "trang trí", "nổi bật"
-    if any(k in tc_name for k in ['thẩm mỹ', 'đẹp', 'trang trí', 'nổi bật', 'ngoại hình']):
-        score = 5.0
-        dacs = [d.upper() for d in (plant.dac_diems or [])]
+    elif any(k in tc_name for k in ['thẩm mỹ', 'đẹp', 'trang trí', 'nổi bật', 'ngoại hình']):
         if any(k in d for d in dacs for k in ['HOA', 'ĐẸP', 'THẨM MỸ', 'TRANG TRÍ']):
             score += 3
-        desc = (plant.mo_ta or '').lower()
         if any(w in desc for w in ['đẹp', 'hoa', 'rực rỡ', 'sang trọng', 'trang trí', 'thẩm mỹ', 'bắt mắt']):
             score += 2
         if any(w in desc for w in ['đơn giản', 'giản dị']):
             score -= 1
-        score += len(plant.dac_diems or []) * 0.5
-        return max(1, score)
 
     # 3. Liên quan đến "công dụng", "lợi ích", "lọc", "phong thủy"
-    if any(k in tc_name for k in ['công dụng', 'lợi ích', 'lọc', 'phong thủy', 'độc']):
-        score = 5.0
-        dacs = [d.upper() for d in (plant.dac_diems or [])]
+    elif any(k in tc_name for k in ['công dụng', 'lợi ích', 'lọc', 'phong thủy', 'độc']):
         if any(k in d for d in dacs for k in ['LỌC', 'KHÔNG ĐỘC', 'AN TOÀN', 'ÍT SÂU', 'KHÁNG']):
             score += 3
-        desc = (plant.mo_ta or '').lower()
         if any(w in desc for w in ['lọc không khí', 'thanh lọc', 'phong thủy', 'sức khỏe']):
             score += 2
-        return max(1, score)
-    
-    # 4. Các yếu tố sinh trưởng: "thích nghi", "chăm sóc", "độ ẩm", "nhiệt độ", "sống", "bền"
-    score = 5.0
-    dacs = [d.upper() for d in (plant.dac_diems or [])]
-    if any(k in d for d in dacs for k in ['DỄ', 'CHỊU', 'THÍCH NGHI', 'BỀN']):
-        score += 3
-    if any(k in d for d in dacs for k in ['KHÓ', 'NHẠY', 'YẾU']):
-        score -= 2
-    desc = (plant.mo_ta or '').lower()
-    if any(w in desc for w in ['dễ chăm', 'bền', 'chịu', 'thích nghi', 'khỏe', 'ẩm', 'nhiệt độ', 'ánh sáng']):
-        score += 2
-    if any(w in desc for w in ['khó chăm', 'nhạy cảm']):
-        score -= 1
-    return max(1, score)
+            
+    # 4. Ánh sáng: Râm mát, yếu, trong nhà
+    elif any(k in tc_name for k in ['mát', 'yếu', 'râm', 'trong nhà', 'văn phòng', 'thiếu sáng']):
+        if any(w in desc for w in ['chịu bóng', 'trong nhà', 'ưa mát', 'ít nắng', 'bóng râm', 'văn phòng']):
+            score += 3
+        if any(w in desc for w in ['ưa nắng', 'nắng gắt', 'ngoài trời', 'nhiều sáng']):
+            score -= 2
+            
+    # 5. Ánh sáng: Nắng, mạnh, ngoài trời
+    elif any(k in tc_name for k in ['nắng', 'sáng', 'ngoài trời', 'ban công', 'sân']):
+        if any(w in desc for w in ['ưa nắng', 'chịu nắng', 'ngoài trời', 'nhiều sáng', 'nắng gắt']):
+            score += 3
+        if any(w in desc for w in ['chịu bóng', 'trong nhà', 'ưa mát']):
+            score -= 2
+            
+    # 6. Nước / Ẩm: Ưa ẩm, cần tưới nhiều
+    elif any(k in tc_name for k in ['ưa ẩm', 'ưa nước', 'nhiều nước']):
+        if any(w in desc for w in ['ưa ẩm', 'ưa nước', 'cần nước', 'độ ẩm']):
+            score += 3
+        if any(w in desc for w in ['chịu hạn', 'ít tưới', 'khô']):
+            score -= 2
+            
+    # 7. Nước / Khô hạn: Chịu hạn, ít tưới
+    elif any(k in tc_name for k in ['khô', 'hạn', 'ít tưới', 'lười tưới']):
+        if any(w in desc for w in ['chịu hạn', 'ít tưới', 'chịu khô']):
+            score += 3
+        if any(w in desc for w in ['ưa ẩm', 'cần tưới', 'ưa nước']):
+            score -= 2
+
+    # 8. Mặc định (Các yếu tố sinh trưởng chung "thích nghi", "chăm sóc")
+    else:
+        if any(k in d for d in dacs for k in ['DỄ', 'CHỊU', 'THÍCH NGHI', 'BỀN']):
+            score += 3
+        if any(k in d for d in dacs for k in ['KHÓ', 'NHẠY', 'YẾU']):
+            score -= 2
+        if any(w in desc for w in ['dễ chăm', 'bền', 'chịu', 'thích nghi', 'khỏe']):
+            score += 2
+        if any(w in desc for w in ['khó chăm', 'nhạy cảm']):
+            score -= 1
+            
+    # Tie-breaker logic (Phá vỡ thế cân bằng để AHP không bao giờ ra tỷ lệ chẵn 20%)
+    tie_breaker = (min(len(desc), 500) * 0.001) + (len(dacs) * 0.01) + (plant.cay_canh_id * 0.0001)
+
+    return max(1.0, score + tie_breaker)
 
 
 def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str, ten_tieu_chi: str) -> tuple:
