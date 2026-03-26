@@ -116,18 +116,13 @@ def score_plant_by_criterion(plant: PlantInfo, tieu_chi: str) -> float:
     return 5.0 + len(plant.dac_diems or []) * 0.5
 
 
-def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str) -> tuple:
+def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str, ten_tieu_chi: str) -> tuple:
     """Compare two plants and return (ahp_score, explanation)"""
     score_a = score_plant_by_criterion(plant_a, tieu_chi)
     score_b = score_plant_by_criterion(plant_b, tieu_chi)
     
     tc = tieu_chi.upper()
-    tc_name = {
-        'C1': 'khả năng thích nghi',
-        'C2': 'thẩm mỹ', 
-        'C3': 'giá cả',
-        'C4': 'công dụng'
-    }.get(tc, 'tiêu chí này')
+    tc_name = ten_tieu_chi.lower()
     
     if abs(score_a - score_b) < 0.5:
         return 1.0, f"Hai cây tương đương về {tc_name}"
@@ -177,7 +172,7 @@ def local_suggest(request: AISuggestRequest) -> AISuggestResponse:
     for i in range(len(plant_list)):
         for j in range(i + 1, len(plant_list)):
             a, b = plant_list[i], plant_list[j]
-            score, explanation = compare_pair(a, b, request.tieu_chi)
+            score, explanation = compare_pair(a, b, request.tieu_chi, request.ten_tieu_chi)
             suggestions.append(PairSuggestion(
                 plant_a_id=a.cay_canh_id,
                 plant_b_id=b.cay_canh_id,
@@ -187,12 +182,7 @@ def local_suggest(request: AISuggestRequest) -> AISuggestResponse:
                 explanation=explanation
             ))
     
-    tc_name = {
-        'C1': 'khả năng thích nghi với nhiệt độ trong nhà',
-        'C2': 'thẩm mỹ và vẻ đẹp',
-        'C3': 'giá cả hợp lý',
-        'C4': 'công dụng và lợi ích'
-    }.get(request.tieu_chi.upper(), request.ten_tieu_chi)
+    tc_name = request.ten_tieu_chi.lower()
     
     summary = f"Hệ thống đã phân tích {len(plant_list)} cây theo tiêu chí \"{tc_name}\" dựa trên thông tin giá, mô tả và đặc điểm của từng cây. Bạn có thể điều chỉnh điểm nếu cần."
     
