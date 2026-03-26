@@ -222,13 +222,15 @@ async def gemini_suggest(request: AISuggestRequest, api_key: str) -> AISuggestRe
 
     prompt = f"""Bạn là chuyên gia cây cảnh và AHP. Đánh giá các cặp cây theo tiêu chí "{request.ten_tieu_chi}" ({request.tieu_chi}).
 
+QUAN TRỌNG: BẠN CHỈ ĐƯỢC PHÉP CHẤM ĐIỂM VÀ LÝ GIẢI DỰA TRÊN THÔNG TIN DƯỚI ĐÂY (TỪ DATABASE MANG LÊN). TUYỆT ĐỐI KHÔNG BỊA ĐẶT THÊM KIẾN THỨC NGOÀI, KHÔNG TỰ CHẾ RA CÁC ĐẶC ĐIỂM KHÔNG CÓ TRONG DANH SÁCH "Đặc điểm" HAY "Mô tả".
+
 Cây: {plants_info}
 Cặp: {pairs_text}
 
-Cho điểm AHP (1/9-9). Score > 1: A tốt hơn B. Score < 1: B tốt hơn A.
-Trả về JSON thuần (không markdown):
-{{"suggestions":[{{"plant_a_id":1,"plant_b_id":2,"plant_a_name":"...","plant_b_name":"...","score":3.0,"explanation":"..."}}],"summary":"..."}}
-Score phải là số thập phân. Đánh giá tất cả {len(pairs)} cặp."""
+Cho điểm AHP quy chuẩn từ 1/9 đến 9. Score > 1 có nghĩa là A tốt hơn B. Score < 1 có nghĩa là B tốt hơn A.
+Trả về định dạng JSON thuần (không bọc trong tag markdown hay code block):
+{{"suggestions":[{{"plant_a_id":1,"plant_b_id":2,"plant_a_name":"...","plant_b_name":"...","score":3.0,"explanation":"Ngắn gọn lý do cụ thể theo data..."}}],"summary":"..."}}
+Score bắt buộc phải là số thập phân. Đánh giá tất cả {len(pairs)} cặp."""
 
     response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
     text = response.text.strip()

@@ -533,7 +533,11 @@ const TuVanAHP = () => {
         else if (answers[idx] === 'B' && q.excludeOnB) excludedFeatures.push(q.dacDiemCode)
       })
 
-      const plants = await ahpService.filterPlants(selectedFeatures, excludedFeatures)
+      const priceOpt = selectedGia !== null ? PRICE_OPTIONS[selectedGia] : null
+      const giaMin = priceOpt?.min ?? null
+      const giaMax = priceOpt?.max ?? null
+
+      const plants = await ahpService.filterPlants(selectedFeatures, excludedFeatures, giaMin, giaMax, selectedLoaiCay)
       setFilteredPlants(plants)
       const pIds = plants.map(p => String(p.cay_canh_id))
       const newMat = {}, newW = {}, newCR = {}
@@ -1438,15 +1442,17 @@ const TuVanAHP = () => {
                       <div className="bg-white/70 rounded-xl p-3 mb-4 border border-purple-100"><p className="text-purple-700 text-sm leading-relaxed">{aiSuggestions.summary}</p></div>
                       <div className="space-y-2 mb-4 max-h-60 overflow-y-auto pr-1">
                         {aiSuggestions.suggestions.map((s, i) => (
-                          <div key={i} className="flex items-center gap-3 bg-white/80 rounded-lg p-3 border border-purple-100/60 text-sm">
-                            <span className="font-bold text-purple-600 text-xs w-5 text-center">{i + 1}</span>
-                            <div className="flex-1 min-w-0">
-                              <span className="font-semibold text-gray-800">{s.plant_a_name}</span>
-                              <span className="text-gray-400 mx-1.5">vs</span>
-                              <span className="font-semibold text-gray-800">{s.plant_b_name}</span>
-                              <span className="ml-2 px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 font-bold text-xs">{getScaleDisplayLabel(s.score)}</span>
+                          <div key={i} className="flex flex-col gap-1.5 bg-white/80 rounded-lg p-3 border border-purple-100/60 text-sm">
+                            <div className="flex items-center gap-3 w-full">
+                              <span className="font-bold text-purple-600 text-xs w-5 text-center flex-shrink-0">{i + 1}</span>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-semibold text-gray-800">{s.plant_a_name}</span>
+                                <span className="text-gray-400 mx-1.5">vs</span>
+                                <span className="font-semibold text-gray-800">{s.plant_b_name}</span>
+                                <span className="ml-2 px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 font-bold text-xs">{getScaleDisplayLabel(s.score)}</span>
+                              </div>
                             </div>
-                            <p className="text-gray-500 text-xs max-w-[200px] truncate" title={s.explanation}>{s.explanation}</p>
+                            <p className="text-gray-500 text-[11px] font-medium italic pl-8 break-words whitespace-normal leading-relaxed">"{s.explanation}"</p>
                           </div>
                         ))}
                       </div>
