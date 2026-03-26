@@ -131,13 +131,18 @@ def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str, ten_tieu
     
     tc_name = ten_tieu_chi.lower()
     
-    if abs(score_a - score_b) < 0.5:
-        return 1.0, f"Hai cây tương đương về {tc_name}"
+    # Trường hợp hy hữu (id, text giống y hệt)
+    if abs(score_a - score_b) < 0.00001:
+        return 1.0, f"Hai cây hoàn toàn tương đương về {tc_name}"
     
     if score_a > score_b:
         ratio = score_a / max(score_b, 0.1)
         ahp = snap_to_ahp(min(ratio, 9))
         
+        # Ép tỷ lệ chênh lệch nếu khoảng cách siêu nhỏ từ Tie-Breaker bị làm tròn về 1
+        if ahp == 1.0: 
+            ahp = 2.0
+            
         # Build explanation
         if 'giá' in tc_name or 'rẻ' in tc_name:
             gia_a = f"{int(plant_a.gia or 0):,}đ"
@@ -145,9 +150,9 @@ def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str, ten_tieu
             if (plant_a.gia or 0) < (plant_b.gia or 0):
                 expl = f"{plant_a.ten_cay} ({gia_a}) rẻ hơn {plant_b.ten_cay} ({gia_b})"
             else:
-                expl = f"{plant_a.ten_cay} tốt hơn về tính kinh tế"
+                expl = f"{plant_a.ten_cay} tính kinh tế nhỉnh hơn"
         else:
-            expl = f"{plant_a.ten_cay} tốt hơn {plant_b.ten_cay} về {tc_name}"
+            expl = f"{plant_a.ten_cay} nhỉnh hơn {plant_b.ten_cay} về {tc_name}"
             dacs_a = plant_a.dac_diems or []
             if dacs_a:
                 expl += f" (có: {', '.join(dacs_a[:2])})"
@@ -156,15 +161,18 @@ def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str, ten_tieu
         ratio = score_b / max(score_a, 0.1)
         ahp = snap_to_ahp(1 / min(ratio, 9))
         
+        if ahp == 1.0:
+            ahp = snap_to_ahp(1 / 2.0) # 0.5
+            
         if 'giá' in tc_name or 'rẻ' in tc_name:
             gia_a = f"{int(plant_a.gia or 0):,}đ"
             gia_b = f"{int(plant_b.gia or 0):,}đ"
             if (plant_b.gia or 0) < (plant_a.gia or 0):
                 expl = f"{plant_b.ten_cay} ({gia_b}) rẻ hơn {plant_a.ten_cay} ({gia_a})"
             else:
-                expl = f"{plant_b.ten_cay} tốt hơn về tính kinh tế"
+                expl = f"{plant_b.ten_cay} tính kinh tế nhỉnh hơn"
         else:
-            expl = f"{plant_b.ten_cay} tốt hơn {plant_a.ten_cay} về {tc_name}"
+            expl = f"{plant_b.ten_cay} nhỉnh hơn {plant_a.ten_cay} về {tc_name}"
             dacs_b = plant_b.dac_diems or []
             if dacs_b:
                 expl += f" (có: {', '.join(dacs_b[:2])})"
