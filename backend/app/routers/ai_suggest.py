@@ -199,7 +199,7 @@ def local_suggest(request: AISuggestRequest) -> AISuggestResponse:
     
     tc_name = request.ten_tieu_chi.lower()
     
-    summary = f"Hệ thống đã phân tích {len(plant_list)} cây theo tiêu chí \"{tc_name}\" dựa trên thông tin giá, mô tả và đặc điểm của từng cây. Bạn có thể điều chỉnh điểm nếu cần."
+    summary = f"Hệ thống đã phân tích {len(plant_list)} cây theo tiêu chí \"{tc_name}\" dựa trên mô tả và đặc điểm của từng cây. Bạn có thể điều chỉnh điểm nếu cần."
     
     return AISuggestResponse(suggestions=suggestions, summary=summary)
 
