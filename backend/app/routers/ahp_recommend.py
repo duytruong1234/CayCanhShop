@@ -21,6 +21,9 @@ router = APIRouter(
 class FilterPlantsRequest(BaseModel):
     selected_dac_diem: Optional[List[str]] = None
     excluded_dac_diem: Optional[List[str]] = None
+    gia_min: Optional[float] = None
+    gia_max: Optional[float] = None
+    loai_cay_id: Optional[int] = None
 
 class RecommendRequest(BaseModel):
     selected_criteria: List[str]  # ['C1', 'C3']
@@ -194,6 +197,16 @@ async def filter_plants(request: FilterPlantsRequest, db: Session = Depends(get_
                 CayCanhDacDiem.MaDacDiem == ma_dd
             )
             plants_query = plants_query.filter(~CayCanh.CayCanhID.in_(subquery))
+
+    # Lọc theo khoảng giá
+    if request.gia_min is not None:
+        plants_query = plants_query.filter(CayCanh.Gia >= request.gia_min)
+    if request.gia_max is not None:
+        plants_query = plants_query.filter(CayCanh.Gia <= request.gia_max)
+
+    # Lọc theo loại cây
+    if request.loai_cay_id is not None:
+        plants_query = plants_query.filter(CayCanh.LoaiCayID == request.loai_cay_id)
 
     plants = plants_query.all()
 

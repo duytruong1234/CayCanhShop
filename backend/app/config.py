@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "static/images"
     MAX_FILE_SIZE: int = 5 * 1024 * 1024  # 5MB
     
+    # Gemini AI
+    GEMINI_API_KEY: str = ""
+    
     class Config:
         env_file = ".env"
 

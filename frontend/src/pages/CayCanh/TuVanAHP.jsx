@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ahpService } from '../../services/ahpService'
 import { cayCanhService } from '../../services/cayCanhService'
 import { useAuth } from '../../context/AuthContext'
-import { FaLeaf, FaArrowRight, FaArrowLeft, FaChevronRight, FaCheckCircle, FaExclamationTriangle, FaRedo, FaShoppingCart, FaInfoCircle, FaChevronDown, FaChevronUp, FaSeedling, FaSearch, FaSave, FaHistory } from 'react-icons/fa'
+import { FaLeaf, FaArrowRight, FaArrowLeft, FaChevronRight, FaCheckCircle, FaExclamationTriangle, FaRedo, FaShoppingCart, FaInfoCircle, FaChevronDown, FaChevronUp, FaSeedling, FaSearch, FaSave, FaHistory, FaRobot, FaMoneyBillWave, FaTag } from 'react-icons/fa'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -134,7 +134,16 @@ const QUESTIONS = [
   { question: 'Nhà bạn có trẻ nhỏ hoặc thú cưng không?', optionA: 'Có, tôi cần cây không độc hại', optionB: 'Không, tôi có thể để cây ở nơi an toàn', dacDiemCode: 'KHONG_DOC' },
   { question: "Bạn có thường xuyên bận rộn và cần cây 'tự lập', dễ chăm sóc không?", optionA: 'Rất bận, chọn cây dễ chăm sóc', optionB: 'Có thời gian để chăm sóc kỹ hơn', dacDiemCode: 'DE_CHAM' },
   { question: 'Bạn có nhạy cảm với mùi hương không?', optionA: 'Chọn cây ít mùi/không mùi', optionB: 'Mùi hương nhẹ nhàng không sao', dacDiemCode: 'IT_MUI' },
-  { question: 'Bạn muốn tìm loại cây kháng sâu bệnh tốt?', optionA: 'Ưu tiên cây kháng sâu bệnh tốt', optionB: 'Bình thường, tôi có thể xử lý được', dacDiemCode: 'IT_SAU' }
+  { question: 'Bạn muốn tìm loại cây kháng sâu bệnh tốt?', optionA: 'Ưu tiên cây kháng sâu bệnh tốt', optionB: 'Bình thường, tôi có thể xử lý được', dacDiemCode: 'IT_SAU' },
+  { question: 'Bạn muốn mua cây trong khoảng giá nào?', type: 'price' },
+  { question: 'Bạn muốn tìm loại cây nào?', type: 'loai_cay' }
+]
+
+const PRICE_OPTIONS = [
+  { label: 'Dưới 100.000đ', min: null, max: 100000 },
+  { label: '100k - 300k', min: 100000, max: 300000 },
+  { label: 'Trên 300.000đ', min: 300000, max: null },
+  { label: 'Tất cả mức giá', min: null, max: null }
 ]
 
 // ===== Step Progress =====
@@ -371,6 +380,17 @@ const TuVanAHP = () => {
   const [loadingAllPlants, setLoadingAllPlants] = useState(false)
   const [historySaved, setHistorySaved] = useState(false)
   const hasSavedRef = useRef(false)
+  const matchCountTimerRef = useRef(null)
+  const [selectedGia, setSelectedGia] = useState(null)
+  const [selectedLoaiCay, setSelectedLoaiCay] = useState(null)
+  const [loaiCayList, setLoaiCayList] = useState([])
+  const [matchCount, setMatchCount] = useState(null)
+  const [matchedPlants, setMatchedPlants] = useState([])
+  const [matchCountLoading, setMatchCountLoading] = useState(false)
+  const [aiSuggestions, setAiSuggestions] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState(null)
+  const [showAiPanel, setShowAiPanel] = useState(false)
 
   const { data: options } = useQuery({
     queryKey: ['ahp-options'],
@@ -389,6 +409,84 @@ const TuVanAHP = () => {
   }, [])
 
   useEffect(() => { if (options) setDacDiems(options.dac_diems || []) }, [options])
+
+  // Fetch danh sách loại cây
+  useEffect(() => {
+    const fetchLoaiCay = async () => {
+      try {
+        const data = await cayCanhService.getLoaiCay()
+        setLoaiCayList(data)
+      } catch (err) { console.error('Lỗi tải loại cây:', err) }
+    }
+    fetchLoaiCay()
+  }, [])
+
+  // Live count: mỗi khi answers/gia/loaiCay thay đổi → đếm số cây
+  useEffect(() => {
+    if (matchCountTimerRef.current) clearTimeout(matchCountTimerRef.current)
+    matchCountTimerRef.current = setTimeout(async () => {
+      try {
+        setMatchCountLoading(true)
+        const selectedFeatures = []
+        const excludedFeatures = []
+        QUESTIONS.forEach((q, idx) => {
+          if (q.type) return
+          if (answers[idx] === 'A') selectedFeatures.push(q.dacDiemCode)
+          else if (answers[idx] === 'B' && q.excludeOnB) excludedFeatures.push(q.dacDiemCode)
+        })
+        const priceOpt = selectedGia !== null ? PRICE_OPTIONS[selectedGia] : null
+        const giaMin = priceOpt?.min ?? null
+        const giaMax = priceOpt?.max ?? null
+        const plants = await ahpService.filterPlants(selectedFeatures, excludedFeatures, giaMin, giaMax, selectedLoaiCay)
+        setMatchCount(plants.length)
+        setMatchedPlants(plants)
+      } catch (err) {
+        console.error('Lỗi đếm cây:', err)
+        setMatchCount(null)
+      } finally { setMatchCountLoading(false) }
+    }, 500)
+    return () => { if (matchCountTimerRef.current) clearTimeout(matchCountTimerRef.current) }
+  }, [answers, selectedGia, selectedLoaiCay])
+
+  // AI Suggest handler
+  const handleAISuggest = async () => {
+    if (!currentCriterion || filteredPlants.length < 2) return
+    setAiLoading(true); setAiError(null); setShowAiPanel(true); setAiSuggestions(null)
+    try {
+      const result = await ahpService.getAISuggestion(filteredPlants, currentCriterion.ma_tieu_chi, currentCriterion.ten_tieu_chi)
+      setAiSuggestions(result)
+    } catch (err) {
+      const status = err?.response?.status
+      const detail = err?.response?.data?.detail
+      if (status === 429) {
+        setAiError('Vượt giới hạn API Gemini. Vui lòng đợi 1-2 phút rồi thử lại.')
+      } else if (status === 400) {
+        setAiError('Chưa cấu hình API Key Gemini. Vui lòng thêm GEMINI_API_KEY vào file backend/.env và bật billing tại aistudio.google.com/apikey')
+      } else {
+        setAiError(detail || 'AI không thể gợi ý lúc này. Vui lòng thử lại.')
+      }
+    } finally { setAiLoading(false) }
+  }
+
+  // Apply AI suggestions to the current alt matrix
+  const applyAISuggestions = () => {
+    if (!aiSuggestions?.suggestions || !currentCriterion) return
+    const tcCode = currentCriterion.ma_tieu_chi
+    const newMatrix = { ...(altMatrices[tcCode] || {}) }
+    const plantIds = filteredPlants.map(p => String(p.cay_canh_id))
+    plantIds.forEach(id => { if (!newMatrix[id]) newMatrix[id] = {} })
+    aiSuggestions.suggestions.forEach(s => {
+      const idA = String(s.plant_a_id), idB = String(s.plant_b_id)
+      if (newMatrix[idA]) newMatrix[idA][idB] = s.score
+      if (newMatrix[idB]) newMatrix[idB][idA] = 1 / s.score
+    })
+    plantIds.forEach(id => { newMatrix[id][id] = 1 })
+    setAltMatrices(prev => ({ ...prev, [tcCode]: newMatrix }))
+    const { weights, cr } = calcWeightsAndCR(newMatrix, plantIds)
+    setAltWeights(prev => ({ ...prev, [tcCode]: weights }))
+    setAltCRs(prev => ({ ...prev, [tcCode]: cr }))
+    setShowAiPanel(false)
+  }
 
   // Fetch tất cả cây cảnh cho phần giới thiệu
   useEffect(() => {
@@ -1078,49 +1176,124 @@ const TuVanAHP = () => {
 
         {/* STEP 2: Questions */}
         {wizardStep === STEP_QUESTIONS && (
-          <div className="bg-white rounded-3xl shadow-[var(--shadow-md)] border border-gray-100/60 p-6 lg:p-9">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-emerald-100 mb-4">
-                <FaSeedling className="text-primary-500 text-lg" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            {/* LEFT: Questions */}
+            <div className="lg:col-span-2 bg-white rounded-3xl shadow-[var(--shadow-md)] border border-gray-100/60 p-6 lg:p-9">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-emerald-100 mb-4">
+                  <FaSeedling className="text-primary-500 text-lg" />
+                </div>
+                <h2 className="text-xl font-heading font-extrabold text-gray-800">Hãy cho chúng tôi biết nhu cầu của bạn</h2>
+                <p className="text-gray-400 text-sm mt-1">Chọn câu trả lời phù hợp nhất với bạn</p>
               </div>
-              <h2 className="text-xl font-heading font-extrabold text-gray-800">Hãy cho chúng tôi biết nhu cầu của bạn</h2>
-              <p className="text-gray-400 text-sm mt-1">Chọn câu trả lời phù hợp nhất với bạn</p>
-            </div>
-            <div className="space-y-5 max-w-2xl mx-auto">
-              {QUESTIONS.map((q, idx) => (
-                <div key={idx} className={`rounded-2xl p-5 border-2 transition-all duration-300 ${answers[idx] ? 'bg-primary-50/30 border-primary-100' : 'bg-gray-50/60 border-gray-100/60 hover:border-gray-200'
-                  }`}>
-                  <p className="font-semibold text-gray-800 mb-4 flex items-start gap-3 text-[15px]">
-                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-sm transition-all ${answers[idx]
-                      ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-primary-200'
-                      : 'bg-gray-100 text-gray-500'
-                      }`}>{idx + 1}</span>
-                    <span>{q.question}</span>
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-11">
-                    {['A', 'B'].map(opt => (
-                      <button
-                        key={opt}
-                        onClick={() => handleAnswer(idx, opt)}
-                        className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left text-sm font-medium transition-all duration-200 ${answers[idx] === opt
-                          ? 'border-primary-400 bg-white text-primary-700 shadow-md shadow-primary-100/50 -translate-y-0.5'
-                          : 'border-gray-200 text-gray-600 bg-white hover:border-gray-300 hover:shadow-sm'
-                          }`}
-                      >
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${answers[idx] === opt ? 'bg-primary-500 border-primary-500 scale-110' : 'border-gray-300'
-                          }`}>
-                          {answers[idx] === opt && (
-                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                          )}
+              <div className="space-y-5">
+                {QUESTIONS.map((q, idx) => {
+                  if (q.type === 'price') {
+                    return (
+                      <div key={idx} className={`rounded-2xl p-5 border-2 transition-all duration-300 ${selectedGia !== null ? 'bg-primary-50/30 border-primary-100' : 'bg-gray-50/60 border-gray-100/60 hover:border-gray-200'}`}>
+                        <p className="font-semibold text-gray-800 mb-4 flex items-start gap-3 text-[15px]">
+                          <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-sm transition-all ${selectedGia !== null ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-primary-200' : 'bg-gray-100 text-gray-500'}`}><FaMoneyBillWave className="text-[11px]" /></span>
+                          <span>{q.question}</span>
+                        </p>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pl-11">
+                          {PRICE_OPTIONS.map((opt, pIdx) => (
+                            <button key={pIdx} onClick={() => setSelectedGia(selectedGia === pIdx ? null : pIdx)} className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${selectedGia === pIdx ? 'border-primary-400 bg-white text-primary-700 shadow-md shadow-primary-100/50 -translate-y-0.5' : 'border-gray-200 text-gray-600 bg-white hover:border-gray-300 hover:shadow-sm'}`}>
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${selectedGia === pIdx ? 'bg-primary-500 border-primary-500' : 'border-gray-300'}`}>
+                                {selectedGia === pIdx && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                              </div>
+                              {opt.label}
+                            </button>
+                          ))}
                         </div>
-                        {opt === 'A' ? q.optionA : q.optionB}
-                      </button>
-                    ))}
+                      </div>
+                    )
+                  }
+                  if (q.type === 'loai_cay') {
+                    return (
+                      <div key={idx} className={`rounded-2xl p-5 border-2 transition-all duration-300 ${selectedLoaiCay !== null ? 'bg-primary-50/30 border-primary-100' : 'bg-gray-50/60 border-gray-100/60 hover:border-gray-200'}`}>
+                        <p className="font-semibold text-gray-800 mb-4 flex items-start gap-3 text-[15px]">
+                          <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-sm transition-all ${selectedLoaiCay !== null ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-primary-200' : 'bg-gray-100 text-gray-500'}`}><FaTag className="text-[11px]" /></span>
+                          <span>{q.question}</span>
+                        </p>
+                        <div className="flex flex-wrap gap-3 pl-11">
+                          <button onClick={() => setSelectedLoaiCay(null)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${selectedLoaiCay === null ? 'border-primary-400 bg-white text-primary-700 shadow-md shadow-primary-100/50 -translate-y-0.5' : 'border-gray-200 text-gray-600 bg-white hover:border-gray-300 hover:shadow-sm'}`}>
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${selectedLoaiCay === null ? 'bg-primary-500 border-primary-500' : 'border-gray-300'}`}>
+                              {selectedLoaiCay === null && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                            </div>
+                            Tất cả loại cây
+                          </button>
+                          {loaiCayList.map(lc => (
+                            <button key={lc.loai_cay_id || lc.LoaiCayID} onClick={() => setSelectedLoaiCay(selectedLoaiCay === (lc.loai_cay_id || lc.LoaiCayID) ? null : (lc.loai_cay_id || lc.LoaiCayID))} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${selectedLoaiCay === (lc.loai_cay_id || lc.LoaiCayID) ? 'border-primary-400 bg-white text-primary-700 shadow-md shadow-primary-100/50 -translate-y-0.5' : 'border-gray-200 text-gray-600 bg-white hover:border-gray-300 hover:shadow-sm'}`}>
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${selectedLoaiCay === (lc.loai_cay_id || lc.LoaiCayID) ? 'bg-primary-500 border-primary-500' : 'border-gray-300'}`}>
+                                {selectedLoaiCay === (lc.loai_cay_id || lc.LoaiCayID) && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                              </div>
+                              {lc.ten_loai || lc.TenLoai}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div key={idx} className={`rounded-2xl p-5 border-2 transition-all duration-300 ${answers[idx] ? 'bg-primary-50/30 border-primary-100' : 'bg-gray-50/60 border-gray-100/60 hover:border-gray-200'}`}>
+                      <p className="font-semibold text-gray-800 mb-4 flex items-start gap-3 text-[15px]">
+                        <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-sm transition-all ${answers[idx] ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-primary-200' : 'bg-gray-100 text-gray-500'}`}>{idx + 1}</span>
+                        <span>{q.question}</span>
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-11">
+                        {['A', 'B'].map(opt => (
+                          <button key={opt} onClick={() => handleAnswer(idx, opt)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left text-sm font-medium transition-all duration-200 ${answers[idx] === opt ? 'border-primary-400 bg-white text-primary-700 shadow-md shadow-primary-100/50 -translate-y-0.5' : 'border-gray-200 text-gray-600 bg-white hover:border-gray-300 hover:shadow-sm'}`}>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${answers[idx] === opt ? 'bg-primary-500 border-primary-500 scale-110' : 'border-gray-300'}`}>
+                              {answers[idx] === opt && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                            </div>
+                            {opt === 'A' ? q.optionA : q.optionB}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <WizardNav onBack={handleBack} onNext={handleNext} loading={loadingPlants} />
+            </div>
+            {/* RIGHT: Matching plants sidebar */}
+            <div className="lg:col-span-1 lg:sticky lg:top-6">
+              <div className="bg-white rounded-2xl shadow-[var(--shadow-md)] border border-gray-100/60 p-5">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-emerald-500 flex items-center justify-center shadow-md shadow-primary-200">
+                    <FaSeedling className="text-white text-sm" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium">Cây phù hợp</p>
+                    {matchCountLoading ? (
+                      <p className="text-sm font-bold text-primary-600">Đang tìm...</p>
+                    ) : (
+                      <p className="text-lg font-extrabold text-primary-700">{matchCount ?? 0} <span className="text-xs font-medium text-gray-400">cây</span></p>
+                    )}
                   </div>
                 </div>
-              ))}
+                <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-1">
+                  {matchCountLoading ? (
+                    <div className="flex justify-center py-8"><div className="w-7 h-7 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" /></div>
+                  ) : matchedPlants.length > 0 ? (
+                    matchedPlants.map((plant) => (
+                      <div key={plant.cay_canh_id} className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50/80 border border-gray-100 hover:border-primary-200 hover:bg-primary-50/30 transition-all duration-200 group">
+                        <img src={plant.hinh_anh ? `${API_URL}/static/images/${plant.hinh_anh}` : ''} alt={plant.ten_cay} className="w-12 h-12 object-cover rounded-lg flex-shrink-0 shadow-sm" onError={(e) => { e.target.onerror = null; e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect fill='%23f0fdf4' width='48' height='48' rx='8'/%3E%3Ctext x='24' y='30' text-anchor='middle' font-size='20'%3E🌿%3C/text%3E%3C/svg%3E" }} />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-gray-800 truncate group-hover:text-primary-700 transition-colors">{plant.ten_cay}</h4>
+                          {plant.gia > 0 && <p className="text-[11px] font-semibold text-primary-600 mt-0.5">{new Intl.NumberFormat('vi-VN').format(plant.gia)}đ</p>}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <FaSeedling className="text-2xl text-gray-200 mx-auto mb-2" />
+                      <p className="text-xs text-gray-400">Chọn câu trả lời để xem cây phù hợp</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <WizardNav onBack={handleBack} onNext={handleNext} loading={loadingPlants} />
           </div>
         )}
 
@@ -1233,15 +1406,59 @@ const TuVanAHP = () => {
             )}
 
             <div className="bg-white rounded-3xl shadow-[var(--shadow-sm)] border border-gray-100/60 p-6 lg:p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
-                  <FaLeaf className="text-primary-500 text-sm" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+                    <FaLeaf className="text-primary-500 text-sm" />
+                  </div>
+                  <div>
+                    <h2 className="font-heading font-bold text-gray-800">Đánh giá theo: {currentCriterion.ten_tieu_chi}</h2>
+                    <p className="text-gray-400 text-xs mt-0.5">Mã: {currentCriterion.ma_tieu_chi} • Bước {currentAltIndex + 1}/{tieuChis.length}</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-heading font-bold text-gray-800">Đánh giá theo: {currentCriterion.ten_tieu_chi}</h2>
-                  <p className="text-gray-400 text-xs mt-0.5">Mã: {currentCriterion.ma_tieu_chi} • Bước {currentAltIndex + 1}/{tieuChis.length}</p>
-                </div>
+                {filteredPlants.length >= 2 && (
+                  <button onClick={handleAISuggest} disabled={aiLoading} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-purple-200 hover:shadow-lg hover:from-violet-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50">
+                    <FaRobot className="text-sm" />
+                    {aiLoading ? 'Đang phân tích...' : 'AI Gợi ý điểm'}
+                  </button>
+                )}
               </div>
+
+              {/* AI Suggestion Panel */}
+              {showAiPanel && (
+                <div className="mb-6 rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-violet-50 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2"><FaRobot className="text-purple-500 text-lg" /><h3 className="font-heading font-bold text-purple-800 text-sm">Gợi ý từ AI</h3></div>
+                    <button onClick={() => setShowAiPanel(false)} className="text-gray-400 hover:text-gray-600 text-xs font-bold px-2 py-1 rounded-lg hover:bg-white/60 transition-all">✕ Đóng</button>
+                  </div>
+                  {aiLoading && <div className="flex items-center justify-center gap-3 py-8"><div className="w-8 h-8 border-3 border-purple-200 border-t-purple-500 rounded-full animate-spin" /><span className="text-purple-600 text-sm font-medium">AI đang phân tích dữ liệu cây...</span></div>}
+                  {aiError && <div className="bg-red-50 rounded-xl p-4 border border-red-200 text-red-700 text-sm"><FaExclamationTriangle className="inline mr-2 text-red-500" />{aiError}</div>}
+                  {aiSuggestions && !aiLoading && (
+                    <div>
+                      <div className="bg-white/70 rounded-xl p-3 mb-4 border border-purple-100"><p className="text-purple-700 text-sm leading-relaxed">{aiSuggestions.summary}</p></div>
+                      <div className="space-y-2 mb-4 max-h-60 overflow-y-auto pr-1">
+                        {aiSuggestions.suggestions.map((s, i) => (
+                          <div key={i} className="flex items-center gap-3 bg-white/80 rounded-lg p-3 border border-purple-100/60 text-sm">
+                            <span className="font-bold text-purple-600 text-xs w-5 text-center">{i + 1}</span>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-semibold text-gray-800">{s.plant_a_name}</span>
+                              <span className="text-gray-400 mx-1.5">vs</span>
+                              <span className="font-semibold text-gray-800">{s.plant_b_name}</span>
+                              <span className="ml-2 px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 font-bold text-xs">{getScaleDisplayLabel(s.score)}</span>
+                            </div>
+                            <p className="text-gray-500 text-xs max-w-[200px] truncate" title={s.explanation}>{s.explanation}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button onClick={applyAISuggestions} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-md hover:shadow-lg transition-all"><FaCheckCircle className="text-xs" /> Áp dụng gợi ý</button>
+                        <button onClick={() => setShowAiPanel(false)} className="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 transition-all">Bỏ qua</button>
+                      </div>
+                      <p className="text-[10px] text-purple-400 mt-3 text-center">* AI gợi ý dựa trên phân tích dữ liệu cây. Bạn có thể chỉnh sửa sau khi áp dụng.</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {filteredPlants.length === 0 ? (
                 <div className="text-center py-16 px-6">
@@ -1481,6 +1698,8 @@ const TuVanAHP = () => {
                   setPhase('intro'); setWizardStep(0); setAnswers({})
                   setFilteredPlants([]); setAltMatrices({}); setAltWeights({})
                   setAltCRs({}); setFinalResults([]); setHistorySaved(false)
+                  setSelectedGia(null); setSelectedLoaiCay(null); setMatchCount(null)
+                  setMatchedPlants([]); setAiSuggestions(null); setShowAiPanel(false); setAiError(null)
                   hasSavedRef.current = false; window.scrollTo(0, 0)
                 }}
                 className="btn-premium btn-primary text-sm py-3 px-6 gap-2 shadow-md"

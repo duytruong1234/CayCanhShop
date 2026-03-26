@@ -17,11 +17,14 @@ export const ahpService = {
     return response.data
   },
 
-  // Lọc cây theo đặc điểm (cho wizard tư vấn)
-  filterPlants: async (selectedDacDiem, excludedDacDiem = []) => {
+  // Lọc cây theo đặc điểm, giá, loại cây (cho wizard tư vấn)
+  filterPlants: async (selectedDacDiem, excludedDacDiem = [], giaMin = null, giaMax = null, loaiCayId = null) => {
     const response = await api.post('/ahp-recommend/loc-cay', {
       selected_dac_diem: selectedDacDiem,
-      excluded_dac_diem: excludedDacDiem
+      excluded_dac_diem: excludedDacDiem,
+      ...(giaMin !== null ? { gia_min: giaMin } : {}),
+      ...(giaMax !== null ? { gia_max: giaMax } : {}),
+      ...(loaiCayId !== null ? { loai_cay_id: loaiCayId } : {})
     })
     return response.data
   },
@@ -54,5 +57,22 @@ export const ahpService = {
   getAHPHistoryByUser: async (taiKhoanId) => {
     const response = await api.get(`/admin/lich-su-ahp/${taiKhoanId}`)
     return response.data
+  },
+
+  // AI: Gợi ý điểm đánh giá AHP
+  getAISuggestion: async (plants, tieuChi, tenTieuChi) => {
+    const response = await api.post('/ai-suggest/goi-y-diem', {
+      plants: plants.map(p => ({
+        cay_canh_id: p.cay_canh_id,
+        ten_cay: p.ten_cay,
+        gia: p.gia || 0,
+        mo_ta: p.mo_ta || '',
+        loai_cay: p.loai_cay || null,
+        dac_diems: p.dac_diems || []
+      })),
+      tieu_chi: tieuChi,
+      ten_tieu_chi: tenTieuChi
+    })
+    return response.data
   }
-}
+}

@@ -7,6 +7,7 @@ from app.config import settings
 from app.routers import auth, cay_canh, gio_hang, don_hang, binh_luan
 from app.routers import dac_diem, tieu_chi, phuong_an, ahp_recommend
 from app.routers import lich_su_ahp
+from app.routers import ai_suggest
 from app.routers.admin import cay_canh as admin_cay_canh
 from app.routers.admin import bai_viet as admin_bai_viet
 from app.routers.admin import don_hang as admin_don_hang
@@ -69,6 +70,7 @@ app.include_router(tieu_chi.router)
 app.include_router(phuong_an.router)
 app.include_router(ahp_recommend.router)
 app.include_router(lich_su_ahp.router)
+app.include_router(ai_suggest.router)
 
 # Route quản trị (Admin)
 app.include_router(admin_cay_canh.router)
