@@ -139,18 +139,18 @@ def generate_nlg_explanation(winner: PlantInfo, loser: PlantInfo, tc_name: str) 
     dacs_upper = [d.upper() for d in (winner.dac_diems or [])]
     reasons = []
     
-    if any('HOA' in d for d in dacs_upper):
-        reasons.append("giá trị thẩm mỹ từ hoa")
-    if any('MÙI' in d or 'MUI' in d for d in dacs_upper):
-        reasons.append("đặc tính không gây mùi khó chịu")
-    if any('CHĂM' in d or 'CHAM' in d for d in dacs_upper):
+    if any(k in d for k in ['HOA', 'HƯƠNG', 'MÀU', 'MAU'] for d in dacs_upper):
+        reasons.append("giá trị thẩm mỹ từ hoa và màu sắc")
+    if any(k in d for k in ['MÙI', 'MUI', 'THƠM'] for d in dacs_upper):
+        reasons.append("đặc tính mùi hương dễ chịu")
+    if any(k in d for k in ['CHĂM', 'CHAM', 'TRỒNG', 'TRONG', 'NHÂN GIỐNG'] for d in dacs_upper):
         reasons.append("không đòi hỏi quy trình chăm sóc khắt khe")
-    if any('ĐỘC' in d or 'DOC' in d for d in dacs_upper) or any('AN TOÀN' in d for d in dacs_upper):
-        reasons.append("tính an toàn, thân thiện")
-    if any('LỌC' in d or 'LOC' in d for d in dacs_upper):
+    if any(k in d for k in ['ĐỘC', 'DOC', 'AN TOÀN', 'THÚ CƯNG', 'TRẺ EM'] for d in dacs_upper):
+        reasons.append("tính an toàn cho không gian nội thất")
+    if any(k in d for k in ['LỌC', 'LOC', 'OXY', 'BỤI', 'KHÍ'] for d in dacs_upper):
         reasons.append("khả năng thanh lọc không khí hiệu quả")
-    if any('BỀN' in d or 'SỨC SỐNG' in d for d in dacs_upper):
-        reasons.append("dễ duy trì sức sống")
+    if any(k in d for k in ['BỀN', 'SỨC SỐNG', 'SỐNG KHỎE', 'PHÁT TRIỂN', 'PHAT TRIEN'] for d in dacs_upper):
+        reasons.append("khả năng phát triển và duy trì sức sống bền bỉ")
 
     # Bổ sung lý do theo ngữ cảnh tiêu chí (tc_name)
     if 'sáng' in tc_name or 'nắng' in tc_name or 'râm' in tc_name or 'trong nhà' in tc_name or 'thiếu' in tc_name:
