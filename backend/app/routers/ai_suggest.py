@@ -45,27 +45,22 @@ def snap_to_ahp(value):
     return closest
 
 
-def score_plant_by_criterion(plant: PlantInfo, tieu_chi: str) -> float:
-    """Score a plant based on a criterion (higher = better)"""
-    tc = tieu_chi.upper()
+def score_plant_by_criterion(plant: PlantInfo, ten_tieu_chi: str) -> float:
+    """Score a plant based on a criterion name (higher = better)"""
+    tc_name = ten_tieu_chi.lower()
     
-    # C1: Khả năng thích nghi với nhiệt độ / Dễ chăm sóc
-    if tc in ['C1', 'THICH_NGHI', 'DE_CHAM']:
-        score = 5.0  # base
-        dacs = [d.upper() for d in (plant.dac_diems or [])]
-        if any(k in d for d in dacs for k in ['DỄ', 'DE_CHAM', 'CHỊU', 'THÍCH NGHI', 'BỀN']):
-            score += 3
-        if any(k in d for d in dacs for k in ['KHÓ', 'NHẠY', 'YẾU']):
-            score -= 2
-        desc = (plant.mo_ta or '').lower()
-        if any(w in desc for w in ['dễ chăm', 'dễ trồng', 'bền', 'chịu', 'thích nghi', 'khỏe']):
-            score += 2
-        if any(w in desc for w in ['khó chăm', 'nhạy cảm', 'cần chăm sóc kỹ']):
-            score -= 1
-        return max(1, score)
+    # 1. Liên quan đến "giá"
+    if 'giá' in tc_name or 'rẻ' in tc_name:
+        gia = plant.gia or 0
+        if gia <= 0: return 5.0
+        if gia < 50000: return 9
+        elif gia < 100000: return 7
+        elif gia < 200000: return 5
+        elif gia < 500000: return 3
+        else: return 1
 
-    # C2: Thẩm mỹ / Đẹp
-    if tc in ['C2', 'THAM_MY', 'DEP']:
+    # 2. Liên quan đến "thẩm mỹ", "đẹp", "trang trí", "nổi bật"
+    if any(k in tc_name for k in ['thẩm mỹ', 'đẹp', 'trang trí', 'nổi bật', 'ngoại hình']):
         score = 5.0
         dacs = [d.upper() for d in (plant.dac_diems or [])]
         if any(k in d for d in dacs for k in ['HOA', 'ĐẸP', 'THẨM MỸ', 'TRANG TRÍ']):
@@ -75,51 +70,40 @@ def score_plant_by_criterion(plant: PlantInfo, tieu_chi: str) -> float:
             score += 2
         if any(w in desc for w in ['đơn giản', 'giản dị']):
             score -= 1
-        # Nhiều đặc điểm = hấp dẫn hơn
         score += len(plant.dac_diems or []) * 0.5
         return max(1, score)
 
-    # C3: Giá cả (giá rẻ hơn = tốt hơn)
-    if tc in ['C3', 'GIA', 'GIA_CA']:
-        gia = plant.gia or 0
-        if gia <= 0:
-            return 5.0
-        if gia < 50000:
-            return 9
-        elif gia < 100000:
-            return 7
-        elif gia < 200000:
-            return 5
-        elif gia < 500000:
-            return 3
-        else:
-            return 1
-
-    # C4: Công dụng / Lợi ích
-    if tc in ['C4', 'CONG_DUNG', 'LOI_ICH']:
+    # 3. Liên quan đến "công dụng", "lợi ích", "lọc", "phong thủy"
+    if any(k in tc_name for k in ['công dụng', 'lợi ích', 'lọc', 'phong thủy', 'độc']):
         score = 5.0
         dacs = [d.upper() for d in (plant.dac_diems or [])]
-        if any(k in d for d in dacs for k in ['LỌC', 'KHÔNG ĐỘC', 'AN TOÀN', 'KHONG_DOC']):
+        if any(k in d for d in dacs for k in ['LỌC', 'KHÔNG ĐỘC', 'AN TOÀN', 'ÍT SÂU', 'KHÁNG']):
             score += 3
-        if any(k in d for d in dacs for k in ['ÍT SÂU', 'IT_SAU', 'KHÁNG']):
-            score += 2
-        if any(k in d for d in dacs for k in ['ÍT MÙI', 'IT_MUI']):
-            score += 1
         desc = (plant.mo_ta or '').lower()
-        if any(w in desc for w in ['lọc không khí', 'thanh lọc', 'giảm stress', 'phong thủy', 'tốt cho sức khỏe']):
+        if any(w in desc for w in ['lọc không khí', 'thanh lọc', 'phong thủy', 'sức khỏe']):
             score += 2
         return max(1, score)
-
-    # Default: score based on number of features
-    return 5.0 + len(plant.dac_diems or []) * 0.5
+    
+    # 4. Các yếu tố sinh trưởng: "thích nghi", "chăm sóc", "độ ẩm", "nhiệt độ", "sống", "bền"
+    score = 5.0
+    dacs = [d.upper() for d in (plant.dac_diems or [])]
+    if any(k in d for d in dacs for k in ['DỄ', 'CHỊU', 'THÍCH NGHI', 'BỀN']):
+        score += 3
+    if any(k in d for d in dacs for k in ['KHÓ', 'NHẠY', 'YẾU']):
+        score -= 2
+    desc = (plant.mo_ta or '').lower()
+    if any(w in desc for w in ['dễ chăm', 'bền', 'chịu', 'thích nghi', 'khỏe', 'ẩm', 'nhiệt độ', 'ánh sáng']):
+        score += 2
+    if any(w in desc for w in ['khó chăm', 'nhạy cảm']):
+        score -= 1
+    return max(1, score)
 
 
 def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str, ten_tieu_chi: str) -> tuple:
     """Compare two plants and return (ahp_score, explanation)"""
-    score_a = score_plant_by_criterion(plant_a, tieu_chi)
-    score_b = score_plant_by_criterion(plant_b, tieu_chi)
+    score_a = score_plant_by_criterion(plant_a, ten_tieu_chi)
+    score_b = score_plant_by_criterion(plant_b, ten_tieu_chi)
     
-    tc = tieu_chi.upper()
     tc_name = ten_tieu_chi.lower()
     
     if abs(score_a - score_b) < 0.5:
@@ -130,13 +114,13 @@ def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str, ten_tieu
         ahp = snap_to_ahp(min(ratio, 9))
         
         # Build explanation
-        if tc in ['C3', 'GIA', 'GIA_CA']:
+        if 'giá' in tc_name or 'rẻ' in tc_name:
             gia_a = f"{int(plant_a.gia or 0):,}đ"
             gia_b = f"{int(plant_b.gia or 0):,}đ"
             if (plant_a.gia or 0) < (plant_b.gia or 0):
                 expl = f"{plant_a.ten_cay} ({gia_a}) rẻ hơn {plant_b.ten_cay} ({gia_b})"
             else:
-                expl = f"{plant_a.ten_cay} tốt hơn về {tc_name}"
+                expl = f"{plant_a.ten_cay} tốt hơn về tính kinh tế"
         else:
             expl = f"{plant_a.ten_cay} tốt hơn {plant_b.ten_cay} về {tc_name}"
             dacs_a = plant_a.dac_diems or []
@@ -147,13 +131,13 @@ def compare_pair(plant_a: PlantInfo, plant_b: PlantInfo, tieu_chi: str, ten_tieu
         ratio = score_b / max(score_a, 0.1)
         ahp = snap_to_ahp(1 / min(ratio, 9))
         
-        if tc in ['C3', 'GIA', 'GIA_CA']:
+        if 'giá' in tc_name or 'rẻ' in tc_name:
             gia_a = f"{int(plant_a.gia or 0):,}đ"
             gia_b = f"{int(plant_b.gia or 0):,}đ"
             if (plant_b.gia or 0) < (plant_a.gia or 0):
                 expl = f"{plant_b.ten_cay} ({gia_b}) rẻ hơn {plant_a.ten_cay} ({gia_a})"
             else:
-                expl = f"{plant_b.ten_cay} tốt hơn về {tc_name}"
+                expl = f"{plant_b.ten_cay} tốt hơn về tính kinh tế"
         else:
             expl = f"{plant_b.ten_cay} tốt hơn {plant_a.ten_cay} về {tc_name}"
             dacs_b = plant_b.dac_diems or []
