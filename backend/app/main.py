@@ -38,9 +38,8 @@ extra_origins = os.environ.get("CORS_ORIGINS", "")
 if extra_origins:
     origins.extend([o.strip() for o in extra_origins.split(",") if o.strip()])
 
-# Nếu đang chạy trên Railway hoặc Render, cho phép tất cả origin
-if os.environ.get("RAILWAY_ENVIRONMENT_NAME") or os.environ.get("RENDER"):
-    origins = ["*"]
+# Fix CORS: allow_credentials=True cannot be used with "*"
+origins.append("https://caycanh-frontend.onrender.com")
 
 app.add_middleware(
     CORSMiddleware,
