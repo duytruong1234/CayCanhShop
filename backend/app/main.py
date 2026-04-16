@@ -38,8 +38,8 @@ extra_origins = os.environ.get("CORS_ORIGINS", "")
 if extra_origins:
     origins.extend([o.strip() for o in extra_origins.split(",") if o.strip()])
 
-# Nếu đang chạy trên Railway, cho phép tất cả origin
-if os.environ.get("RAILWAY_ENVIRONMENT_NAME"):
+# Nếu đang chạy trên Railway hoặc Render, cho phép tất cả origin
+if os.environ.get("RAILWAY_ENVIRONMENT_NAME") or os.environ.get("RENDER"):
     origins = ["*"]
 
 app.add_middleware(
