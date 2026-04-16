@@ -25,26 +25,11 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS - cho phép React frontend gọi API
-origins = [
-    "http://localhost:3000",      # React dev
-    "http://localhost:5173",      # Vite dev
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-]
-
-# Thêm các origin từ biến môi trường (Railway production)
-extra_origins = os.environ.get("CORS_ORIGINS", "")
-if extra_origins:
-    origins.extend([o.strip() for o in extra_origins.split(",") if o.strip()])
-
-# Fix CORS: allow_credentials=True cannot be used with "*"
-origins.append("https://caycanh-frontend.onrender.com")
-
+# CORS - cho phép tất cả origin (deploy Render)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
